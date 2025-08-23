@@ -6,15 +6,11 @@ This project creates a scalable, low-power mesh of sensor nodes that collect env
 
 Features:
 
-📡 LoRa Mesh Networking – Multi-hop routing and relay of sensor data across unreliable or sparse networks.
-
-🌡 Sensor Support – Easy integration with common environmental sensors (e.g., temperature, humidity, air quality).
-
-🔋 Low Power – Sleep modes and data batching for extended battery life.
-
-🎯 Gateway Bridging – Select nodes act as gateways, relaying multi-node data to the cloud via Wi-Fi, Ethernet, or Cellular.
-
-🛠 Modular Architecture – Clear separation of mesh, sensor, application logic, and gateway uplink.
+- 📡 LoRa Mesh Networking – Multi-hop routing and relay of sensor data across unreliable or sparse networks.
+- 🌡 Sensor Support – Easy integration with common environmental sensors (e.g., temperature, humidity, air quality).
+- 🔋 Low Power – Sleep modes and data batching for extended battery life.
+- 🎯 Gateway Bridging – Select nodes act as gateways, relaying multi-node data to the cloud via Wi-Fi, Ethernet, or Cellular.
+- 🛠 Modular Architecture – Clear separation of mesh, sensor, application logic, and gateway uplink.
 
 ## Architecture
 

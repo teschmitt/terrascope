@@ -14,4 +14,5 @@ file(GLOB_RECURSE app_sources
 target_sources(app PRIVATE ${app_sources})
 target_include_directories(app PRIVATE
     src/
+    src/lora/
 )
