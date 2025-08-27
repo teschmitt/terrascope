@@ -1,0 +1,5 @@
+class SensorManager
+{
+public:
+    SensorManager();
+};
