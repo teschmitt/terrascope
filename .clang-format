@@ -1,0 +1,42 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+IncludeBlocks: Merge
+IndentGotoLabels: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+
+# Additional Google style settings that are implicit
+ColumnLimit: 80
+BreakBeforeBraces: Attach
+AlignParameters: true
+BinPackArguments: true
+BinPackParameters: true
+BreakConstructorInitializers: BeforeComma
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard: c++17
+
+# Embedded-friendly additions
+AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: false
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+CompactNamespaces: false
+FixNamespaceComments: true
+IndentCaseLabels: true
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+SortIncludes: true
+SortUsingDeclarations: true
