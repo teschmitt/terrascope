@@ -1,5 +1,0 @@
-class SensorManager
-{
-public:
-    SensorManager();
-};
