@@ -1,6 +1,7 @@
 #if !defined(LORA_DEVICE_H)
 #define LORA_DEVICE_H
 #include <zcbor_encode.h>
+#include <zephyr/drivers/lora.h>
 #include <zephyr/zbus/zbus.h>
 #include "node_status/node_status.h"
 #include "sensors/sensor_manager.h"
@@ -18,9 +19,9 @@ struct ts_msg_lora_outgoing {
     } data;
 };
 
-void lora_out_task();
-
-int serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf, size_t buf_len,
-              size_t* p_size);
+bool lora_config_ready_device(struct lora_modem_config* config);
+int lora_out_task();
+int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
+                   size_t buf_len, size_t* p_size);
 
 #endif  // LORA_DEVICE_H
