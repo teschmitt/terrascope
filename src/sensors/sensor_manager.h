@@ -7,6 +7,8 @@
 extern const struct zbus_channel telemetry_chan;
 
 struct ts_msg_telemetry {
+    // TODO: 16 bit vals get cast to 32 bit in CBOR anyway so maybe find a
+    // better representation (16 bit float has a native CBOR type)
     uint32_t timestamp;
     uint16_t temperature;
     uint16_t humidity;
