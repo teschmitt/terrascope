@@ -1,0 +1,11 @@
+/ {
+    aliases {
+        lora0 = &lora_mock;
+    };
+
+    lora_mock: lora-mock {
+        compatible = "zephyr,lora-mock";
+        status = "okay";
+        label = "LORA_MOCK";
+    };
+};

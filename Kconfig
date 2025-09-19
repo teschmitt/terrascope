@@ -1,0 +1,8 @@
+# Main application Kconfig
+mainmenu "Terrascope Configuration"
+
+# Source Zephyr's main Kconfig
+source "Kconfig.zephyr"
+
+# Source our custom drivers
+rsource "drivers/*/Kconfig*"

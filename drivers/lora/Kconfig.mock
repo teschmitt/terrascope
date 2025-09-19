@@ -1,0 +1,17 @@
+# Mock LoRa driver for simulation
+config LORA_MOCK
+    bool "Mock LoRa driver"
+    depends on LORA
+    help
+      Enable mock LoRa driver for simulation and testing purposes.
+      This driver simulates LoRa operations without actual hardware.
+
+if LORA_MOCK
+
+config LORA_MOCK_INIT_PRIORITY
+    int "Mock LoRa driver init priority"
+    default 80
+    help
+      Mock LoRa driver initialization priority.
+
+endif # LORA_MOCK
