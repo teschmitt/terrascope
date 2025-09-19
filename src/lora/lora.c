@@ -7,12 +7,42 @@ ZBUS_SUBSCRIBER_DEFINE(tm_telemetry_sub_01, 2);
 K_THREAD_DEFINE(lora_out_tid, LORA_OUT_THREAD_STACK_SIZE, lora_out_task, NULL,
                 NULL, NULL, 3, 0, 0);
 
-#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
-BUILD_ASSERT(DT_NODE_HAS_STATUS_OKAY(DEFAULT_RADIO_NODE),
-             "No default LoRa radio specified in DT");
-const struct device* const lora_dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-struct lora_modem_config config;
-bool lora_config_done = false;
+// // #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
+// // BUILD_ASSERT(DT_NODE_HAS_STATUS_OKAY(DEFAULT_RADIO_NODE),
+// //              "No default LoRa radio specified in DT");
+// const struct device* const lora_dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+// struct lora_modem_config config;
+// bool lora_config_done = false;
+
+static const struct device* lora_dev;
+static bool lora_config_done = false;
+
+// Initialize the LoRa device reference
+static int lora_init(void) {
+#if DT_NODE_HAS_STATUS(DT_ALIAS(lora0), okay)
+    lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
+#else
+    LOG_ERR("No LoRa device alias found");
+    return -ENODEV;
+#endif
+    if (!device_is_ready(lora_dev)) {
+        LOG_ERR("LoRa device not ready");
+        return -ENODEV;
+    }
+
+    // Configure the device
+    struct lora_modem_config config;
+    lora_config_ready_device(&config);
+
+    if (lora_config(lora_dev, &config) < 0) {
+        LOG_ERR("LoRa config failed");
+        return -EIO;
+    }
+
+    return 0;
+}
+
+SYS_INIT(lora_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
 bool lora_config_ready_device(struct lora_modem_config* config) {
     config->frequency = 865100000;
@@ -126,6 +156,6 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
     }
 
     *p_size = enc_state->payload - p_buf;
-    LOG_INF("Size: %i", *p_size);
+    LOG_INF("Size: %ld", *p_size);
     return 0;
 }
