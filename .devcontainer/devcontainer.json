@@ -1,0 +1,49 @@
+{
+    "name": "zephyr-dev",
+    "image": "ghcr.io/zephyrproject-rtos/zephyr-build:main",
+    "runArgs": [
+        "--name",
+        "zephyr-dev"
+    ],
+    "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/workdir",
+    "workspaceFolder": "/workdir",
+    "features": {
+        "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+            "packages": "neofetch"
+        },
+        "ghcr.io/devcontainers/features/github-cli:latest": {},
+        "ghcr.io/joshuanianji/devcontainer-features/github-cli-persistence:1": {},
+        "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vscode-icons-team.vscode-icons",
+                "ms-vscode.makefile-tools",
+                "ms-vscode.cpptools-themes",
+                "ms-vscode-remote.remote-ssh",
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack",
+                "twxs.cmake",
+                "ms-vscode.cmake-tools",
+                "GitHub.copilot",
+                "GitHub.vscode-pull-request-github",
+                "yzhang.markdown-all-in-one",
+                "ms-python.python",
+                "ms-vscode-remote.remote-wsl",
+                "ms-vscode-remote.remote-ssh-edit",
+                "ms-vscode-remote.remote-containers",
+            ],
+            "settings": {
+                "files.eol": "\n",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/bin/zsh"
+                    }
+                }
+            }
+        }
+    },
+    "remoteUser": "user"
+}

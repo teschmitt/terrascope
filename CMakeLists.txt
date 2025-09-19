@@ -15,3 +15,7 @@ target_sources(app PRIVATE ${app_sources})
 target_include_directories(app PRIVATE
     src/
 )
+
+if(CONFIG_LORA_MOCK)
+    target_sources(app PRIVATE src/drivers/lora_mock.c)
+endif()
