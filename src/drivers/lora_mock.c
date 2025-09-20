@@ -3,7 +3,7 @@
 #include <zephyr/drivers/lora.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(lora_mock, CONFIG_LORA_LOG_LEVEL);
+LOG_MODULE_REGISTER(lora_mock);
 
 struct lora_mock_data {
     struct lora_modem_config config;
