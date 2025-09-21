@@ -1,21 +1,12 @@
-#if !defined(SENSOR_MANAGER_H)
+#ifndef SENSOR_MANAGER_H
 #define SENSOR_MANAGER_H
 
+#include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
 #include <zephyr/zbus/zbus.h>
+#include "messages/messages.h"
 
-extern const struct zbus_channel telemetry_chan;
-
-struct ts_msg_telemetry {
-    // TODO: 16 bit vals get cast to 32 bit in CBOR anyway so maybe find a
-    // better representation (16 bit float has a native CBOR type)
-    uint32_t timestamp;
-    uint16_t temperature;
-    uint16_t humidity;
-    uint16_t pressure;
-};
-
-void sensor_take_reading_wrapper(struct k_work* work);
 void periodic_work_handler(const struct zbus_channel* chan);
+void sensor_take_reading_wrapper(struct k_work* work);
 
 #endif  // SENSOR_MANAGER_H
