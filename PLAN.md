@@ -20,9 +20,9 @@ Created: 2026-03-25
 ### Phase 2 — Tests & LoRa Receive
 - [x] 6. Add ztest infrastructure — extracted cbor module, created tests/cbor/ targeting qemu_riscv64
 - [x] 7. Unit test CBOR serialization — 4 tests: both message types, invalid type, buffer overflow
-- [ ] 8. Add `west twister` to CI — run ztest suite as part of the GitHub Actions workflow
-- [ ] 9. Write tests for CBOR deserialization (TDD) — test `cbor_deserialize` before implementing it
-- [ ] 10. Implement `cbor_deserialize` in src/lora/cbor.c — decode incoming CBOR back to `ts_msg_lora_outgoing`
+- [x] 8. Add `west twister` to CI — separate test job in GitHub Actions workflow
+- [x] 9. Write tests for CBOR deserialization (TDD) — 4 tests: roundtrip telemetry/node_status, truncated buffer, empty buffer
+- [x] 10. Implement `cbor_deserialize` in src/lora/cbor.c — all 8 tests passing
 - [ ] 11. Add incoming zbus channel (`ts_lora_in_chan`) for received messages
 - [ ] 12. Add a LoRa receive task — subscribe to incoming radio, deserialize CBOR, publish to `ts_lora_in_chan`
 - [ ] 13. Extend mock driver — simulate incoming messages for QEMU testing
@@ -49,4 +49,4 @@ TDD approach: write unit tests before implementation for pure logic (CBOR deseri
 
 Coding guidelines were added to CLAUDE.md covering naming, module structure, error handling, types, and memory conventions.
 
-Phase 1 complete. Phase 2 items 6–7 complete. Later phases should be planned in detail before implementation.
+Phase 1 complete. Phase 2 items 6–10 complete. Task 11 is next: add incoming zbus channel for received messages.
