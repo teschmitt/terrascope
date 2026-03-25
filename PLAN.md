@@ -6,7 +6,7 @@ Created: 2026-03-25
 
 - **Sensor data is random mock** — sensor_manager.c uses sys_rand32_get(), no real driver integration
 - **No LoRa receive path** — mock driver returns -ENOTSUP for recv, no receive task exists
-- **No tests** — no unit or integration test infrastructure
+
 
 ## Roadmap
 
@@ -17,23 +17,27 @@ Created: 2026-03-25
 - [x] 4. Commit pending changes (header guard renames, logging extraction, version logging, coding guidelines)
 - [x] 5. Add basic CI build check — GitHub Actions matrix build for all three boards
 
-### Phase 2 — LoRa Receive & Message Handling
-- [ ] 6. Add a LoRa receive task — subscribe to incoming radio messages, deserialize CBOR
-- [ ] 7. Extend mock driver — simulate incoming messages for QEMU testing
-- [ ] 8. Add incoming zbus channel (ts_lora_in_chan) for received messages
+### Phase 2 — Tests & LoRa Receive
+- [ ] 6. Add ztest infrastructure — `tests/` directory with CMakeLists.txt, prj.conf, testcase.yaml targeting qemu_riscv64
+- [ ] 7. Unit test CBOR serialization — test `cbor_serialize` for both message types, verify output against known-good CBOR
+- [ ] 8. Unit test message construction — verify struct packing, timestamp population, enum values
+- [ ] 9. Add `west twister` to CI — run ztest suite as part of the GitHub Actions workflow
+- [ ] 10. Add a LoRa receive task — subscribe to incoming radio messages, deserialize CBOR
+- [ ] 11. Extend mock driver — simulate incoming messages for QEMU testing
+- [ ] 12. Add incoming zbus channel (ts_lora_in_chan) for received messages
 
 ### Phase 3 — Real Sensor Integration
-- [ ] 9. RAK4631 sensor drivers — wire up actual I2C/SPI sensors (BME280 or similar)
-- [ ] 10. Sensor abstraction — make sensor_manager work with both real and mock backends
+- [ ] 13. RAK4631 sensor drivers — wire up actual I2C/SPI sensors (BME280 or similar)
+- [ ] 14. Sensor abstraction — make sensor_manager work with both real and mock backends
 
 ### Phase 4 — Mesh Networking
-- [ ] 11. Node addressing — assign unique IDs, add source/destination to messages
-- [ ] 12. Simple flooding protocol — rebroadcast received messages with TTL
-- [ ] 13. Routing table — track neighbors, implement basic multi-hop routing
+- [ ] 15. Node addressing — assign unique IDs, add source/destination to messages
+- [ ] 16. Simple flooding protocol — rebroadcast received messages with TTL
+- [ ] 17. Routing table — track neighbors, implement basic multi-hop routing
 
 ### Phase 5 — Gateway & Cloud
-- [ ] 14. Gateway role for Heltec (WiFi-capable) — aggregate mesh data, uplink to cloud
-- [ ] 15. Low-power optimization — sleep scheduling, duty cycling for battery nodes
+- [ ] 18. Gateway role for Heltec (WiFi-capable) — aggregate mesh data, uplink to cloud
+- [ ] 19. Low-power optimization — sleep scheduling, duty cycling for battery nodes
 
 ## Notes
 
