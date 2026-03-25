@@ -66,3 +66,52 @@ Per-board configs live in `boards/`. The QEMU target enables the mock LoRa drive
 - All types/structs use `ts_` prefix
 - Zephyr logging: each module registers its own `LOG_MODULE_REGISTER(name)`
 - LoRa device configured at 865.1 MHz, SF10, BW 125 kHz, CR 4/5
+
+## Coding Guidelines
+
+### Naming
+
+- All application types, structs, enums, and zbus channels use `ts_` prefix
+- Enum typedefs use `_t` suffix (e.g., `ts_msg_type_t`); structs do not (e.g., `struct ts_msg_telemetry`)
+- Functions and variables: `snake_case`
+- Macros and constants: `UPPER_SNAKE_CASE`
+- Output pointer parameters: `p_` prefix (e.g., `uint8_t* p_buf`, `size_t* p_size`)
+
+### Header Guards
+
+- Format: `#ifndef TS_<MODULE>_H` / `#define TS_<MODULE>_H` / `#endif  // TS_<MODULE>_H`
+
+### Includes
+
+- Order: Zephyr/system headers (`<zephyr/...>`) first, then project headers (`"module/header.h"`)
+- `<zephyr/logging/log.h>` placed last in includes, immediately before `LOG_MODULE_REGISTER()`
+
+### Module Structure
+
+- One directory per module with paired `module.h` + `module.c`
+- Each `.c` file registers its own `LOG_MODULE_REGISTER(name)`
+- Public API in header, private functions `static` in source
+- Cross-module channel access via `extern struct zbus_channel`
+
+### Error Handling
+
+- Functions return `int`: 0 = success, negative errno on failure (`-ENODEV`, `-EIO`, `-EINVAL`, `-ENOMEM`)
+- Log errors with `LOG_ERR()` at the point of failure with relevant context
+- In event loops: log error and `continue` on recoverable failures
+
+### Types
+
+- Use explicit fixed-width types (`uint32_t`, `int16_t`, etc.) — never bare `int` for data fields
+- Use `const` for pointer-to-device and read-only data
+- Use Zephyr's `BUILD_ASSERT` for compile-time validation of devicetree nodes
+
+### Memory
+
+- Static allocation only — no `malloc`/dynamic allocation
+- Stack-allocated buffers for known sizes; pass buffer length explicitly
+
+### Comments
+
+- Explain "why", not "what" — code should be self-documenting
+- Use `//` for inline comments; keep them minimal
+- Mark incomplete work with `// TODO:` at the point of issue
