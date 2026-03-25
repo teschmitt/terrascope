@@ -4,21 +4,17 @@ Created: 2026-03-25
 
 ## Known Issues
 
-- **Timestamps hardcoded to 0** — TODOs at main.c:40 and sensor_manager.c:9
-- **@GIT_COMMIT_HASH@ not substituted** in version.h — CMake not wiring git hash
-- **Duplicate struct definitions** — node_status.h and messages.h both define ts_msg_node_status
 - **Sensor data is random mock** — sensor_manager.c uses sys_rand32_get(), no real driver integration
 - **No LoRa receive path** — mock driver returns -ENOTSUP for recv, no receive task exists
 - **No tests** — no unit or integration test infrastructure
-- **Uncommitted changes** — header guard renames (TS_ prefix), logging module extraction, version logging
 
 ## Roadmap
 
 ### Phase 1 — Housekeeping & Quality (low risk, high value)
-- [ ] 1. Fix version.h — wire git commit hash into the build via CMake so boot log shows real hash
-- [ ] 2. Resolve node_status.h duplication — consolidate into messages.h
-- [ ] 3. Implement timestamps — use k_uptime_get() or similar (TODOs in main.c:40 and sensor_manager.c)
-- [ ] 4. Commit pending changes (header guard renames, logging extraction, etc.)
+- [x] 1. Fix version.h — wire git commit hash into the build via CMake configure_file
+- [x] 2. Resolve node_status.h duplication — removed orphaned header (messages.h is canonical)
+- [x] 3. Implement timestamps — uses k_uptime_seconds() in main.c and sensor_manager.c
+- [x] 4. Commit pending changes (header guard renames, logging extraction, version logging, coding guidelines)
 - [ ] 5. Add basic CI build check (GitHub Actions with Zephyr Docker image)
 
 ### Phase 2 — LoRa Receive & Message Handling
@@ -43,4 +39,6 @@ Created: 2026-03-25
 
 The foundation (zbus, CBOR, mock LoRa, modular structure) is solid. This plan sequences work so each phase builds on the previous one, and early phases reduce technical debt before adding complexity.
 
-Phase 1 items can be parallelized. Later phases should be planned in detail before implementation.
+Coding guidelines were added to CLAUDE.md covering naming, module structure, error handling, types, and memory conventions.
+
+Phase 1 items 1-4 complete. Item 5 (CI) remains. Later phases should be planned in detail before implementation.
