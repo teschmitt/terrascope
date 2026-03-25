@@ -11,7 +11,8 @@ void periodic_work_handler(const struct zbus_channel* chan) {
 
     struct ts_msg_lora_outgoing out_msg = {
         .type = TS_MSG_TELEMETRY,
-        .data.telemetry = {.humidity = sys_rand32_get() / 1000000,
+        .data.telemetry = {.timestamp = (uint32_t)k_uptime_seconds(),
+                           .humidity = sys_rand32_get() / 1000000,
                            .pressure = sys_rand32_get() / 10000,
                            .temperature = sys_rand32_get() / 1000000}};
 

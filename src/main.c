@@ -33,11 +33,12 @@ int main() {
 
     while (true) {
         k_sleep(K_SECONDS(7));
+        uint32_t now = (uint32_t)k_uptime_seconds();
         struct ts_msg_lora_outgoing out_msg = {
             .type = TS_MSG_NODE_STATUS,
-            .data.node_status = {.timestamp = 0,
-                                 .uptime = k_uptime_seconds(),
-                                 .status = OK}  // TODO: implement timestamp
+            .data.node_status = {.timestamp = now,
+                                 .uptime = now,
+                                 .status = OK}
         };
         LOG_DBG("Notifying mesh of node status: uptime=%d, status=%d",
                 out_msg.data.node_status.uptime,
