@@ -179,6 +179,6 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
     }
 
     *p_size = enc_state->payload - p_buf;
-    LOG_INF("CBOR encoding successful, size: %ld", *p_size);
+    LOG_INF("CBOR encoding successful, size: %zu", *p_size);
     return 0;
 }

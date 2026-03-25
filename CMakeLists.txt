@@ -29,6 +29,8 @@ file(GLOB_RECURSE app_sources
     src/*.cpp
     src/*.c
 )
+# Mock driver is conditionally added below via CONFIG_LORA_MOCK
+list(FILTER app_sources EXCLUDE REGEX "lora_mock\\.c")
 
 target_sources(app PRIVATE ${app_sources})
 target_include_directories(app PRIVATE
