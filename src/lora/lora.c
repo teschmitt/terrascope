@@ -1,7 +1,7 @@
 #include "lora.h"
 #include <zephyr/logging/log.h>
 
-#define LORA_CHAN_OUT_READ_TIMEOUT K_MSEC(2)
+#define LORA_CHAN_OUT_READ_TIMEOUT K_MSEC(1)
 
 LOG_MODULE_REGISTER(lora);
 
