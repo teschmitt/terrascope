@@ -27,12 +27,12 @@ jobs:
           - heltec_wifi_lora32_v2/esp32/procpu
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: terrascope
 
       - name: Cache west modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             bootloader
@@ -61,12 +61,12 @@ jobs:
       ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-1.0.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: terrascope
 
       - name: Cache west modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             bootloader
