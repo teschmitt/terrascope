@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+      options: --user root
     strategy:
       fail-fast: false
       matrix:
