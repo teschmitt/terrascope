@@ -22,7 +22,7 @@ jobs:
         board:
           - qemu_riscv64
           - rak4631
-          - heltec_wifi_lora32_v2/procpu
+          - heltec_wifi_lora32_v2/esp32/procpu
     steps:
       - name: Checkout
         uses: actions/checkout@v4
