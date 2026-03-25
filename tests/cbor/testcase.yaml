@@ -1,0 +1,4 @@
+tests:
+  terrascope.cbor:
+    tags: cbor serialization
+    platform_allow: qemu_riscv64

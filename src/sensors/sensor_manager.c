@@ -1,4 +1,5 @@
 #include "sensor_manager.h"
+#include "logging/logging.h"
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(sensor);
@@ -21,7 +22,8 @@ void periodic_work_handler(const struct zbus_channel* chan) {
             out_msg.data.telemetry.temperature,
             out_msg.data.telemetry.humidity);
 
-    zbus_chan_pub(&ts_lora_out_chan, &out_msg, K_MSEC(200));
+    int ret = zbus_chan_pub(&ts_lora_out_chan, &out_msg, K_MSEC(200));
+    log_chan_pub_ret(ret);
 }
 
 void sensor_take_reading_wrapper(struct k_work* work) {
