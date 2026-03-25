@@ -1,5 +1,5 @@
-#ifndef SENSOR_MANAGER_H
-#define SENSOR_MANAGER_H
+#ifndef TS_SENSOR_MANAGER_H
+#define TS_SENSOR_MANAGER_H
 
 #include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
@@ -9,4 +9,4 @@
 void periodic_work_handler(const struct zbus_channel* chan);
 void sensor_take_reading_wrapper(struct k_work* work);
 
-#endif  // SENSOR_MANAGER_H
+#endif  // TS_SENSOR_MANAGER_H

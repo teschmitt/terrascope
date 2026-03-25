@@ -1,5 +1,5 @@
-#ifndef LORA_H
-#define LORA_H
+#ifndef TS_LORA_H
+#define TS_LORA_H
 
 #include <zcbor_encode.h>
 #include <zephyr/drivers/lora.h>
@@ -15,4 +15,4 @@ int lora_out_task(void);
 int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
                    size_t buf_len, size_t* p_size);
 
-#endif  // LORA_H
+#endif  // TS_LORA_H

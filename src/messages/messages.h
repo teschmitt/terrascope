@@ -1,5 +1,5 @@
-#ifndef MESSAGES_H
-#define MESSAGES_H
+#ifndef TS_MESSAGES_H
+#define TS_MESSAGES_H
 
 #include <stdint.h>
 
@@ -39,4 +39,4 @@ struct ts_msg_lora_outgoing {
     } data;
 };
 
-#endif  // MESSAGES_H
+#endif  // TS_MESSAGES_H

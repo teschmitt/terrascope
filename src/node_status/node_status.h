@@ -1,5 +1,5 @@
-#if !defined(NODE_STATUS_H)
-#define NODE_STATUS_H
+#if !defined(TS_NODE_STATUS_H)
+#define TS_NODE_STATUS_H
 
 #include <stdint.h>
 
@@ -11,4 +11,4 @@ struct ts_msg_node_status {
     ts_node_status status;
 };
 
-#endif  // NODE_STATUS_H
+#endif  // TS_NODE_STATUS_H
