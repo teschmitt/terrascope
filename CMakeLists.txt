@@ -6,6 +6,25 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(terrascope)
 
+# Extract git commit hash for version info
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+    RESULT_VARIABLE GIT_RESULT
+)
+if(NOT GIT_RESULT EQUAL 0)
+    set(GIT_COMMIT_HASH "unknown")
+endif()
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/src/version.h.in
+    ${CMAKE_BINARY_DIR}/generated/version.h
+    @ONLY
+)
+
 file(GLOB_RECURSE app_sources
     src/*.cpp
     src/*.c
@@ -13,6 +32,7 @@ file(GLOB_RECURSE app_sources
 
 target_sources(app PRIVATE ${app_sources})
 target_include_directories(app PRIVATE
+    ${CMAKE_BINARY_DIR}/generated
     src/
 )
 
