@@ -1,17 +1,16 @@
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/zbus/zbus.h>
+#include "logging/logging.h"
 #include "lora/lora.h"
 #include "messages/messages.h"
 #include "sensors/sensor_manager.h"
+#include "version.h"
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(terrascope);
-
-#define PRODUCER_DELAY K_MSEC(500)
-#define CONSUMER_START_DELAY_MS 3000
 
 #define ZBUS_SEND_TIMEOUT K_MSEC(200)
 
@@ -27,11 +26,12 @@ void sensor_periodic_timer_handler(struct k_timer* dummy) {
 K_TIMER_DEFINE(sensor_periodic_timer, sensor_periodic_timer_handler, NULL);
 
 int main() {
-    LOG_INF("Zbus multi-threaded example started");
+    LOG_INF("Terrascope v%s (%s %s) started", FIRMWARE_VERSION_STRING,
+            BUILD_TIMESTAMP, GIT_COMMIT_HASH);
 
     k_timer_start(&sensor_periodic_timer, K_SECONDS(1), K_SECONDS(10));
 
-    while (1) {
+    while (true) {
         k_sleep(K_SECONDS(7));
         struct ts_msg_lora_outgoing out_msg = {
             .type = TS_MSG_NODE_STATUS,
@@ -44,29 +44,7 @@ int main() {
                 out_msg.data.node_status.status);
 
         int ret = zbus_chan_pub(&ts_lora_out_chan, &out_msg, ZBUS_SEND_TIMEOUT);
-        switch (ret) {
-            case ENOMSG:
-                LOG_ERR(
-                    "The message is invalid based on the validator function or "
-                    "some of the observers could not receive the "
-                    "notification.");
-                break;
-            case EBUSY:
-                LOG_ERR("The channel is busy.");
-                break;
-            case EAGAIN:
-                LOG_ERR("Waiting period timed out.");
-                break;
-            case EFAULT:
-                LOG_ERR(
-                    "A parameter is incorrect, the notification could not be "
-                    "sent to one or more observer, or the function context is "
-                    "invalid (inside an ISR).");
-                break;
-
-            default:
-                LOG_DBG("Message published");
-        }
+        log_chan_pub_ret(ret);
     }
 
     return 0;
