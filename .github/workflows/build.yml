@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/zephyrproject-rtos/zephyr-build:main
-      options: --user root
     strategy:
       fail-fast: false
       matrix:
@@ -24,6 +23,11 @@ jobs:
           - rak4631
           - heltec_wifi_lora32_v2/esp32/procpu
     steps:
+      - name: Fix permissions
+        run: |
+          sudo chmod -R 777 /__w/_temp
+          sudo chmod -R 777 /__w/terrascope
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
