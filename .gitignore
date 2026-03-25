@@ -2,3 +2,10 @@
 .vscode/
 
 /build*
+
+# West-managed dependencies
+.west/
+bootloader/
+modules/
+tools/
+zephyr/
