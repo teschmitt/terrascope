@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+      options: --user root
+    env:
+      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-1.0.0
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - qemu_riscv64
+          - rak4631
+          - heltec_wifi_lora32_v2/esp32/procpu
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: terrascope
+
+      - name: Cache west modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            bootloader
+            modules
+            tools
+            zephyr
+          key: west-${{ hashFiles('terrascope/west.yml') }}
+          restore-keys: |
+            west-
+
+      - name: West init and update
+        run: |
+          west init -l terrascope
+          west update --narrow --fetch-opt=--depth=1
+
+      - name: Build ${{ matrix.board }}
+        working-directory: terrascope
+        run: west build -b ${{ matrix.board }} -p

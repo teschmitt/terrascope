@@ -16,7 +16,7 @@ west build -b qemu_riscv64 -p
 
 # Build for hardware targets
 west build -b rak4631 -p
-west build -b heltec_wifi_lora32_v2/procpu -p
+west build -b heltec_wifi_lora32_v2/esp32/procpu -p
 
 # Run in QEMU
 west build -t run
