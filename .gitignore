@@ -2,6 +2,7 @@
 .vscode/
 
 /build*
+/twister-out*
 
 # West-managed dependencies
 .west/
