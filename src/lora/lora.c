@@ -53,16 +53,10 @@ bool lora_config_ready_device(struct lora_modem_config* config) {
 int lora_out_task() {
     const struct zbus_channel* chan;
 
-    if (!device_is_ready(lora_dev)) {
-        LOG_ERR("%s Device not ready", lora_dev->name);
-        return -1;
-    }
-
-    if (!lora_config_done) {
-        LOG_ERR(
-            "%s Device has not been properly configured. Call lora_config()",
-            lora_dev->name);
-        return -1;
+    // Wait for LoRa device to be ready, retrying every 5 seconds
+    while (!device_is_ready(lora_dev) || !lora_config_done) {
+        LOG_WRN("LoRa device not ready, retrying in 5s");
+        k_sleep(K_SECONDS(5));
     }
 
     LOG_INF("LoRa output task started");
