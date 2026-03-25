@@ -15,7 +15,7 @@ Created: 2026-03-25
 - [x] 2. Resolve node_status.h duplication — removed orphaned header (messages.h is canonical)
 - [x] 3. Implement timestamps — uses k_uptime_seconds() in main.c and sensor_manager.c
 - [x] 4. Commit pending changes (header guard renames, logging extraction, version logging, coding guidelines)
-- [ ] 5. Add basic CI build check (GitHub Actions with Zephyr Docker image)
+- [x] 5. Add basic CI build check — GitHub Actions matrix build for all three boards
 
 ### Phase 2 — LoRa Receive & Message Handling
 - [ ] 6. Add a LoRa receive task — subscribe to incoming radio messages, deserialize CBOR
@@ -41,4 +41,4 @@ The foundation (zbus, CBOR, mock LoRa, modular structure) is solid. This plan se
 
 Coding guidelines were added to CLAUDE.md covering naming, module structure, error handling, types, and memory conventions.
 
-Phase 1 items 1-4 complete. Item 5 (CI) remains. Later phases should be planned in detail before implementation.
+Phase 1 complete. Later phases should be planned in detail before implementation.
