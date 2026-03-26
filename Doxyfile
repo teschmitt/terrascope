@@ -14,6 +14,7 @@ DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
 HTML_EXTRA_STYLESHEET  = doxygen-awesome.css
 HTML_COLORSTYLE        = LIGHT
+HTML_EXTRA_FILES       = test_results.html
 GENERATE_LATEX         = NO
 HAVE_DOT               = NO
 QUIET                  = YES

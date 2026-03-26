@@ -86,8 +86,16 @@ jobs:
         working-directory: terrascope
         run: west twister -T tests -p qemu_riscv64 --no-shuffle
 
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: terrascope/twister-out/twister_report.xml
+
   docs:
     runs-on: ubuntu-latest
+    needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       pages: write
@@ -98,6 +106,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Download test report
+        uses: actions/download-artifact@v4
+        with:
+          name: test-report
+
+      - name: Generate test results HTML
+        run: python3 scripts/twister_to_html.py twister_report.xml test_results.html
 
       - name: Install Doxygen
         run: sudo apt-get update && sudo apt-get install -y doxygen

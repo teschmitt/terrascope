@@ -7,6 +7,11 @@
  * forward it across a multi-hop LoRa mesh using flooding with RSSI-based
  * contention forwarding.
  *
+ * @section test_results Test Results
+ *
+ * <a href="test_results.html">View latest test results</a>
+ * (generated from CI on each merge to main).
+ *
  * @section modules Modules
  *
  * - @ref messages — Message type definitions and route header
