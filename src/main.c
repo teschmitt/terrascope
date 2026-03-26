@@ -4,6 +4,8 @@
 #include "logging/logging.h"
 #include "lora/lora.h"
 #include "messages/messages.h"
+#include "routing/routing.h"
+#include "routing/routing_table.h"
 #include "sensors/sensor_manager.h"
 #include "version.h"
 
@@ -11,6 +13,9 @@
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(terrascope);
+
+// TODO: derive from hardware unique ID or Kconfig
+#define TS_NODE_ID 0x0001
 
 #define ZBUS_SEND_TIMEOUT K_MSEC(200)
 
@@ -29,11 +34,26 @@ void sensor_periodic_timer_handler(struct k_timer* dummy) {
 }
 K_TIMER_DEFINE(sensor_periodic_timer, sensor_periodic_timer_handler, NULL);
 
+// Periodic routing table aging
+static void routing_table_age_handler(struct k_work *work) {
+    ts_routing_table_age_seconds(TS_ROUTING_TABLE_STALE_TIMEOUT_S);
+}
+K_WORK_DEFINE(routing_table_age_work, routing_table_age_handler);
+static void routing_table_age_timer_handler(struct k_timer *dummy) {
+    k_work_submit(&routing_table_age_work);
+}
+K_TIMER_DEFINE(routing_table_age_timer, routing_table_age_timer_handler, NULL);
+
 int main() {
     LOG_INF("Terrascope v%s (%s %s) started", FIRMWARE_VERSION_STRING,
             BUILD_TIMESTAMP, GIT_COMMIT_HASH);
 
+    ts_routing_init(TS_NODE_ID);
+    ts_routing_table_init();
+    LOG_INF("Node ID: 0x%04x", ts_routing_get_node_id());
+
     k_timer_start(&sensor_periodic_timer, K_SECONDS(1), K_SECONDS(10));
+    k_timer_start(&routing_table_age_timer, K_SECONDS(60), K_SECONDS(60));
 
     while (true) {
         k_sleep(K_SECONDS(7));
@@ -42,8 +62,9 @@ int main() {
             .type = TS_MSG_NODE_STATUS,
             .data.node_status = {.timestamp = now,
                                  .uptime = now,
-                                 .status = OK}
+                                 .status = OK},
         };
+        ts_routing_prepare_header(&out_msg.route, TS_ROUTING_BROADCAST_ADDR);
         LOG_DBG("Notifying mesh of node status: uptime=%d, status=%d",
                 out_msg.data.node_status.uptime,
                 out_msg.data.node_status.status);

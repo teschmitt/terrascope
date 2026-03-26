@@ -1,6 +1,7 @@
 #include "sensor_manager.h"
 
 #include "logging/logging.h"
+#include "routing/routing.h"
 #include "sensors/sensor_backend.h"
 
 #include <zephyr/logging/log.h>
@@ -14,6 +15,7 @@ void periodic_work_handler(const struct zbus_channel *chan) {
         .type = TS_MSG_TELEMETRY,
         .data.telemetry.timestamp = (uint32_t)k_uptime_seconds(),
     };
+    ts_routing_prepare_header(&out_msg.route, TS_ROUTING_BROADCAST_ADDR);
 
     if (ts_sensor_backend_read(&out_msg.data.telemetry) != 0) {
         return;

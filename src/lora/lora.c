@@ -1,4 +1,9 @@
 #include "lora.h"
+
+#include "lora/contention.h"
+#include "routing/routing.h"
+#include "routing/routing_table.h"
+
 #include <zephyr/logging/log.h>
 
 #define LORA_CHAN_OUT_READ_TIMEOUT K_MSEC(1)
@@ -122,6 +127,7 @@ int lora_in_task() {
         k_sleep(K_SECONDS(5));
     }
 
+    ts_contention_init();
     LOG_INF("LoRa receive task started");
 
     while (true) {
@@ -153,9 +159,39 @@ int lora_in_task() {
             continue;
         }
 
-        ret = zbus_chan_pub(&ts_lora_in_chan, &in_msg, LORA_CHAN_IN_PUB_TIMEOUT);
-        if (ret != 0) {
-            LOG_ERR("Failed to publish incoming message: %d", ret);
+        // Flooding: drop own messages that returned via other nodes
+        if (in_msg.msg.route.src == ts_routing_get_node_id()) {
+            continue;
+        }
+
+        // Flooding: drop duplicates and cancel any pending contention forward
+        if (ts_routing_is_duplicate(&in_msg.msg.route)) {
+            LOG_DBG("Dropping duplicate msg_id=%u from 0x%04x",
+                    in_msg.msg.route.msg_id, in_msg.msg.route.src);
+            ts_contention_cancel(in_msg.msg.route.src,
+                                 in_msg.msg.route.msg_id);
+            continue;
+        }
+        ts_routing_mark_seen(&in_msg.msg.route);
+        ts_routing_table_update(in_msg.msg.route.src, rssi, snr,
+                                in_msg.msg.route.ttl);
+
+        // Deliver locally if addressed to this node or broadcast
+        if (ts_routing_is_for_us(&in_msg.msg.route)) {
+            ret = zbus_chan_pub(&ts_lora_in_chan, &in_msg,
+                               LORA_CHAN_IN_PUB_TIMEOUT);
+            if (ret != 0) {
+                LOG_ERR("Failed to publish incoming message: %d", ret);
+            }
+        }
+
+        // Contention-based rebroadcast: delay based on RSSI
+        struct ts_msg_lora_outgoing fwd = in_msg.msg;
+        if (ts_routing_decrement_ttl(&fwd.route) == 0 && fwd.route.ttl > 0) {
+            ret = ts_contention_schedule(&fwd, rssi);
+            if (ret != 0) {
+                LOG_ERR("Failed to schedule contention forward: %d", ret);
+            }
         }
     }
     return 0;  // unreachable!
