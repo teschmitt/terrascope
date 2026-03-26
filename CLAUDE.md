@@ -11,6 +11,10 @@ Terrascope is a Zephyr RTOS firmware for LoRa-enabled mesh sensor nodes. It targ
 The project uses Zephyr's `west` build system inside a devcontainer (`ghcr.io/zephyrproject-rtos/zephyr-build:main`).
 
 ```bash
+# First-time setup (after cloning or recreating the devcontainer)
+west init -l .
+west update --narrow --fetch-opt=--depth=1
+
 # Build for QEMU (simulation with mock LoRa driver)
 west build -b qemu_riscv64 -p
 
