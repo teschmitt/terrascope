@@ -5,7 +5,6 @@ Created: 2026-03-25
 ## Known Issues
 
 - **Sensor data is random mock** — sensor_manager.c uses sys_rand32_get(), no real driver integration
-- **Mock LoRa driver does not simulate incoming messages** — recv returns -ENOTSUP, task 13 will add mock RX
 
 
 ## Roadmap
@@ -25,7 +24,7 @@ Created: 2026-03-25
 - [x] 10. Implement `cbor_deserialize` in src/lora/cbor.c — all 8 tests passing
 - [x] 11. Add incoming zbus channel (`ts_lora_in_chan`) — carries `ts_msg_lora_incoming` (decoded msg + RSSI/SNR)
 - [x] 12. Add LoRa receive task — `lora_in_task` polls radio, deserializes CBOR, publishes to `ts_lora_in_chan`
-- [ ] 13. Extend mock driver — simulate incoming messages for QEMU testing
+- [x] 13. Extend mock driver — loopback via k_msgq: sent packets are queued and returned by recv
 
 ### Phase 3 — Real Sensor Integration
 - [ ] 14. RAK4631 sensor drivers — wire up actual I2C/SPI sensors (BME280 or similar)
@@ -49,4 +48,4 @@ TDD approach: write unit tests before implementation for pure logic (CBOR deseri
 
 Coding guidelines were added to CLAUDE.md covering naming, module structure, error handling, types, and memory conventions.
 
-Phase 1 complete. Phase 2 items 6–12 complete. Task 13 (mock driver RX) remains before Phase 2 is done.
+Phase 1 complete. Phase 2 complete. Full TX→RX loopback verified in QEMU.
