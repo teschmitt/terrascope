@@ -17,6 +17,10 @@ LOG_MODULE_REGISTER(terrascope);
 ZBUS_CHAN_DEFINE(ts_lora_out_chan, struct ts_msg_lora_outgoing, NULL, NULL,
                  ZBUS_OBSERVERS(ts_lora_out_sub), ZBUS_MSG_INIT(0));
 
+// No observers yet — mesh routing and gateway modules will subscribe later
+ZBUS_CHAN_DEFINE(ts_lora_in_chan, struct ts_msg_lora_incoming, NULL, NULL,
+                 ZBUS_OBSERVERS_EMPTY, ZBUS_MSG_INIT(0));
+
 // Set up periodic sensor readings using a timer and submit the work to the
 // system workqueue
 K_WORK_DEFINE(sensor_take_reading, sensor_take_reading_wrapper);
