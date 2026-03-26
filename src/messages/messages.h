@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "routing/routing.h"
+
 // Message types
 typedef enum {
     TS_MSG_TELEMETRY = 0,
@@ -32,6 +34,7 @@ struct ts_msg_node_status {
 
 // Main outgoing message structure
 struct ts_msg_lora_outgoing {
+    struct ts_route_header route;
     ts_msg_type_t type;
     union {
         struct ts_msg_telemetry telemetry;

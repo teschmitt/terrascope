@@ -1,5 +1,6 @@
 *.code-workspace
 .vscode/
+.claude
 
 /build*
 /twister-out*

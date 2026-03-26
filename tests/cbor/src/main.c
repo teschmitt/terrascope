@@ -2,9 +2,13 @@
 #include "lora/cbor.h"
 #include "messages/messages.h"
 
+#define TEST_ROUTE \
+    { .src = 0x0001, .dst = 0xFFFF, .msg_id = 42, .ttl = 5 }
+
 ZTEST(cbor, test_serialize_telemetry_returns_ok)
 {
     struct ts_msg_lora_outgoing msg = {
+        .route = TEST_ROUTE,
         .type = TS_MSG_TELEMETRY,
         .data.telemetry = {.timestamp = 100,
                            .temperature = 2500,
@@ -22,6 +26,7 @@ ZTEST(cbor, test_serialize_telemetry_returns_ok)
 ZTEST(cbor, test_serialize_node_status_returns_ok)
 {
     struct ts_msg_lora_outgoing msg = {
+        .route = TEST_ROUTE,
         .type = TS_MSG_NODE_STATUS,
         .data.node_status = {.timestamp = 200, .uptime = 200, .status = OK}};
     uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
@@ -35,7 +40,7 @@ ZTEST(cbor, test_serialize_node_status_returns_ok)
 
 ZTEST(cbor, test_serialize_invalid_type_returns_einval)
 {
-    struct ts_msg_lora_outgoing msg = {.type = 99};
+    struct ts_msg_lora_outgoing msg = {.route = TEST_ROUTE, .type = 99};
     uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
     size_t size = 0;
 
@@ -47,6 +52,7 @@ ZTEST(cbor, test_serialize_invalid_type_returns_einval)
 ZTEST(cbor, test_serialize_buffer_too_small)
 {
     struct ts_msg_lora_outgoing msg = {
+        .route = TEST_ROUTE,
         .type = TS_MSG_TELEMETRY,
         .data.telemetry = {.timestamp = 100,
                            .temperature = 2500,
@@ -60,11 +66,12 @@ ZTEST(cbor, test_serialize_buffer_too_small)
     zassert_not_equal(ret, 0, "should fail with tiny buffer");
 }
 
-/* Deserialization tests (TDD — written before cbor_deserialize implementation) */
+/* Deserialization tests */
 
 ZTEST(cbor, test_roundtrip_telemetry)
 {
     struct ts_msg_lora_outgoing original = {
+        .route = {.src = 0x0001, .dst = 0x0002, .msg_id = 99, .ttl = 3},
         .type = TS_MSG_TELEMETRY,
         .data.telemetry = {.timestamp = 1234,
                            .temperature = 2500,
@@ -81,6 +88,10 @@ ZTEST(cbor, test_roundtrip_telemetry)
 
     zassert_ok(ret, "deserialize should succeed");
     zassert_equal(decoded.type, TS_MSG_TELEMETRY);
+    zassert_equal(decoded.route.src, 0x0001);
+    zassert_equal(decoded.route.dst, 0x0002);
+    zassert_equal(decoded.route.msg_id, 99);
+    zassert_equal(decoded.route.ttl, 3);
     zassert_equal(decoded.data.telemetry.timestamp, 1234);
     zassert_equal(decoded.data.telemetry.temperature, 2500);
     zassert_equal(decoded.data.telemetry.humidity, 6000);
@@ -90,6 +101,7 @@ ZTEST(cbor, test_roundtrip_telemetry)
 ZTEST(cbor, test_roundtrip_node_status)
 {
     struct ts_msg_lora_outgoing original = {
+        .route = {.src = 0x0003, .dst = 0xFFFF, .msg_id = 7, .ttl = 5},
         .type = TS_MSG_NODE_STATUS,
         .data.node_status = {
             .timestamp = 5678, .uptime = 5678, .status = ERROR}};
@@ -104,6 +116,10 @@ ZTEST(cbor, test_roundtrip_node_status)
 
     zassert_ok(ret, "deserialize should succeed");
     zassert_equal(decoded.type, TS_MSG_NODE_STATUS);
+    zassert_equal(decoded.route.src, 0x0003);
+    zassert_equal(decoded.route.dst, 0xFFFF);
+    zassert_equal(decoded.route.msg_id, 7);
+    zassert_equal(decoded.route.ttl, 5);
     zassert_equal(decoded.data.node_status.timestamp, 5678);
     zassert_equal(decoded.data.node_status.uptime, 5678);
     zassert_equal(decoded.data.node_status.status, ERROR);
@@ -112,6 +128,7 @@ ZTEST(cbor, test_roundtrip_node_status)
 ZTEST(cbor, test_deserialize_truncated_buffer)
 {
     struct ts_msg_lora_outgoing msg = {
+        .route = TEST_ROUTE,
         .type = TS_MSG_TELEMETRY,
         .data.telemetry = {.timestamp = 100,
                            .temperature = 2500,

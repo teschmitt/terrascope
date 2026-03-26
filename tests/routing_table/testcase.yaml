@@ -1,0 +1,4 @@
+tests:
+  terrascope.routing_table:
+    tags: routing mesh
+    platform_allow: qemu_riscv64

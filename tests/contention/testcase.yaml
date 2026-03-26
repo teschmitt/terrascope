@@ -1,0 +1,4 @@
+tests:
+  terrascope.contention:
+    tags: contention mesh lora
+    platform_allow: qemu_riscv64

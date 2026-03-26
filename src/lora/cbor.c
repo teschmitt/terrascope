@@ -7,13 +7,31 @@
 
 LOG_MODULE_REGISTER(cbor);
 
+static int serialize_route(zcbor_state_t *state,
+                           const struct ts_route_header *p_route) {
+    if (!zcbor_tstr_put_lit(state, "route") ||
+        !zcbor_map_start_encode(state, 4) ||
+        !zcbor_tstr_put_lit(state, "src") ||
+        !zcbor_uint32_put(state, (uint32_t)p_route->src) ||
+        !zcbor_tstr_put_lit(state, "dst") ||
+        !zcbor_uint32_put(state, (uint32_t)p_route->dst) ||
+        !zcbor_tstr_put_lit(state, "msg_id") ||
+        !zcbor_uint32_put(state, p_route->msg_id) ||
+        !zcbor_tstr_put_lit(state, "ttl") ||
+        !zcbor_uint32_put(state, (uint32_t)p_route->ttl) ||
+        !zcbor_map_end_encode(state, 4)) {
+        return -ENOMEM;
+    }
+    return 0;
+}
+
 int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
                    size_t buf_len, size_t* p_size) {
 
     ZCBOR_STATE_E(enc_state, 0, p_buf, buf_len, 0);
     int ret;
 
-    if (!zcbor_map_start_encode(enc_state, 2)) {
+    if (!zcbor_map_start_encode(enc_state, 3)) {
         ret = zcbor_peek_error(enc_state);
         LOG_ERR("Failed to start CBOR map, error: %d", ret);
         return -ENOMEM;
@@ -25,6 +43,13 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
         LOG_ERR("Failed to encode type, error: %d", ret);
         return -ENOMEM;
     }
+
+    ret = serialize_route(enc_state, &msg->route);
+    if (ret != 0) {
+        LOG_ERR("Failed to encode route header");
+        return ret;
+    }
+
     if (!zcbor_tstr_put_lit(enc_state, "data")) {
         ret = zcbor_peek_error(enc_state);
         LOG_ERR("Failed to encode data key, error: %d", ret);
@@ -70,7 +95,7 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
             return -EINVAL;
     }
 
-    if (!zcbor_map_end_encode(enc_state, 2)) {
+    if (!zcbor_map_end_encode(enc_state, 3)) {
         ret = zcbor_peek_error(enc_state);
         LOG_ERR("Failed to end CBOR map, error: %d", ret);
         return -ENOMEM;
@@ -78,6 +103,31 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
 
     *p_size = enc_state->payload - p_buf;
     LOG_INF("CBOR encoding successful, size: %zu", *p_size);
+    return 0;
+}
+
+static int deserialize_route(zcbor_state_t *state,
+                             struct ts_route_header *p_route) {
+    uint32_t src, dst, msg_id, ttl;
+
+    if (!zcbor_tstr_expect_lit(state, "route") ||
+        !zcbor_map_start_decode(state) ||
+        !zcbor_tstr_expect_lit(state, "src") ||
+        !zcbor_uint32_decode(state, &src) ||
+        !zcbor_tstr_expect_lit(state, "dst") ||
+        !zcbor_uint32_decode(state, &dst) ||
+        !zcbor_tstr_expect_lit(state, "msg_id") ||
+        !zcbor_uint32_decode(state, &msg_id) ||
+        !zcbor_tstr_expect_lit(state, "ttl") ||
+        !zcbor_uint32_decode(state, &ttl) ||
+        !zcbor_map_end_decode(state)) {
+        return -EBADMSG;
+    }
+
+    p_route->src = (uint16_t)src;
+    p_route->dst = (uint16_t)dst;
+    p_route->msg_id = msg_id;
+    p_route->ttl = (uint8_t)ttl;
     return 0;
 }
 
@@ -122,21 +172,30 @@ int cbor_deserialize(const uint8_t* p_buf, size_t buf_len,
         return -EINVAL;
     }
 
-    // 2 backups for nested containers (outer map + inner data map)
+    // 2 backups for nested containers (outer map + route/data map)
     ZCBOR_STATE_D(dec_state, 2, p_buf, buf_len, 1, 0);
 
     uint32_t type_val;
 
     if (!zcbor_map_start_decode(dec_state) ||
         !zcbor_tstr_expect_lit(dec_state, "type") ||
-        !zcbor_uint32_decode(dec_state, &type_val) ||
-        !zcbor_tstr_expect_lit(dec_state, "data")) {
+        !zcbor_uint32_decode(dec_state, &type_val)) {
         LOG_ERR("Failed to decode CBOR envelope");
         return -EBADMSG;
     }
 
     p_msg->type = (ts_msg_type_t)type_val;
-    int ret;
+
+    int ret = deserialize_route(dec_state, &p_msg->route);
+    if (ret != 0) {
+        LOG_ERR("Failed to decode route header");
+        return ret;
+    }
+
+    if (!zcbor_tstr_expect_lit(dec_state, "data")) {
+        LOG_ERR("Failed to decode data key");
+        return -EBADMSG;
+    }
 
     switch (p_msg->type) {
         case TS_MSG_TELEMETRY:
