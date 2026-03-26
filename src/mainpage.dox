@@ -1,0 +1,20 @@
+/**
+ * @mainpage Terrascope
+ *
+ * LoRa-enabled mesh sensor firmware running on Zephyr RTOS.
+ *
+ * Nodes collect environmental data (temperature, humidity, pressure) and
+ * forward it across a multi-hop LoRa mesh using flooding with RSSI-based
+ * contention forwarding.
+ *
+ * @section modules Modules
+ *
+ * - @ref messages — Message type definitions and route header
+ * - @ref routing — Node addressing, TTL, and duplicate detection
+ * - @ref routing_table — Neighbor tracking with RSSI and aging
+ * - @ref lora — LoRa device init, TX/RX threads
+ * - @ref cbor — CBOR serialization and deserialization
+ * - @ref contention — RSSI-based contention forwarding
+ * - @ref sensors — Sensor manager and backend abstraction
+ * - @ref logging — Zbus error logging helper
+ */

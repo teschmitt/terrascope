@@ -1,0 +1,15 @@
+PROJECT_NAME           = "Terrascope"
+PROJECT_BRIEF          = "LoRa mesh sensor firmware on Zephyr RTOS"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = src/
+RECURSIVE              = YES
+FILE_PATTERNS          = *.h *.c *.dox
+EXCLUDE_PATTERNS       = */drivers/*
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+SOURCE_BROWSER         = YES
+GENERATE_LATEX         = NO
+HAVE_DOT               = NO
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = NO

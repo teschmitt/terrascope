@@ -4,6 +4,7 @@
 
 /build*
 /twister-out*
+/docs/
 
 # West-managed dependencies
 .west/
