@@ -27,7 +27,7 @@ Created: 2026-03-25
 - [x] 13. Extend mock driver — loopback via k_msgq: sent packets are queued and returned by recv
 
 ### Phase 3 — Real Sensor Integration
-- [ ] 14. RAK4631 sensor drivers — wire up actual I2C/SPI sensors (BME280 or similar)
+- [x] 14. RAK4631 sensor drivers — BME280 on I2C0, conditional compile via DT_HAS_COMPAT_STATUS_OKAY
 - [ ] 15. Sensor abstraction — make sensor_manager work with both real and mock backends
 
 ### Phase 4 — Mesh Networking
