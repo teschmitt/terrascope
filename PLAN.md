@@ -5,7 +5,7 @@ Created: 2026-03-25
 ## Known Issues
 
 - **Sensor data is random mock** — sensor_manager.c uses sys_rand32_get(), no real driver integration
-- **No LoRa receive path** — mock driver returns -ENOTSUP for recv, no receive task exists
+- **Mock LoRa driver does not simulate incoming messages** — recv returns -ENOTSUP, task 13 will add mock RX
 
 
 ## Roadmap
@@ -23,8 +23,8 @@ Created: 2026-03-25
 - [x] 8. Add `west twister` to CI — separate test job in GitHub Actions workflow
 - [x] 9. Write tests for CBOR deserialization (TDD) — 4 tests: roundtrip telemetry/node_status, truncated buffer, empty buffer
 - [x] 10. Implement `cbor_deserialize` in src/lora/cbor.c — all 8 tests passing
-- [ ] 11. Add incoming zbus channel (`ts_lora_in_chan`) for received messages
-- [ ] 12. Add a LoRa receive task — subscribe to incoming radio, deserialize CBOR, publish to `ts_lora_in_chan`
+- [x] 11. Add incoming zbus channel (`ts_lora_in_chan`) — carries `ts_msg_lora_incoming` (decoded msg + RSSI/SNR)
+- [x] 12. Add LoRa receive task — `lora_in_task` polls radio, deserializes CBOR, publishes to `ts_lora_in_chan`
 - [ ] 13. Extend mock driver — simulate incoming messages for QEMU testing
 
 ### Phase 3 — Real Sensor Integration
@@ -49,4 +49,4 @@ TDD approach: write unit tests before implementation for pure logic (CBOR deseri
 
 Coding guidelines were added to CLAUDE.md covering naming, module structure, error handling, types, and memory conventions.
 
-Phase 1 complete. Phase 2 items 6–10 complete. Task 11 is next: add incoming zbus channel for received messages.
+Phase 1 complete. Phase 2 items 6–12 complete. Task 13 (mock driver RX) remains before Phase 2 is done.

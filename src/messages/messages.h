@@ -39,4 +39,11 @@ struct ts_msg_lora_outgoing {
     } data;
 };
 
+// Wraps a decoded message with radio metadata from the LoRa PHY layer
+struct ts_msg_lora_incoming {
+    struct ts_msg_lora_outgoing msg;
+    int16_t rssi;
+    int8_t snr;
+};
+
 #endif  // TS_MESSAGES_H
