@@ -6,6 +6,5 @@
     lora_mock: lora-mock {
         compatible = "zephyr,lora-mock";
         status = "okay";
-        label = "LORA_MOCK";
     };
 };
