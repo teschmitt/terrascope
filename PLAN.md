@@ -28,7 +28,7 @@ Created: 2026-03-25
 
 ### Phase 3 — Real Sensor Integration
 - [x] 14. RAK4631 sensor drivers — BME280 on I2C0, conditional compile via DT_HAS_COMPAT_STATUS_OKAY
-- [ ] 15. Sensor abstraction — make sensor_manager work with both real and mock backends
+- [x] 15. Sensor abstraction — make sensor_manager work with both real and mock backends
 
 ### Phase 4 — Mesh Networking
 - [ ] 16. Write tests for routing logic (TDD) — test node addressing, TTL decrement, duplicate detection before implementing

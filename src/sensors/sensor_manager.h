@@ -2,7 +2,6 @@
 #define TS_SENSOR_MANAGER_H
 
 #include <zephyr/kernel.h>
-#include <zephyr/random/random.h>
 #include <zephyr/zbus/zbus.h>
 
 #include "messages/messages.h"
