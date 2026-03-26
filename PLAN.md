@@ -31,10 +31,11 @@ Created: 2026-03-25
 - [x] 15. Sensor abstraction — make sensor_manager work with both real and mock backends
 
 ### Phase 4 — Mesh Networking
-- [ ] 16. Write tests for routing logic (TDD) — test node addressing, TTL decrement, duplicate detection before implementing
-- [ ] 17. Node addressing — assign unique IDs, add source/destination to messages
-- [ ] 18. Simple flooding protocol — rebroadcast received messages with TTL
-- [ ] 19. Routing table — track neighbors, implement basic multi-hop routing
+- [x] 16. Write tests for routing logic (TDD) — test node addressing, TTL decrement, duplicate detection before implementing
+- [x] 17. Node addressing — assign unique IDs, add source/destination to messages
+- [x] 18. Simple flooding protocol — rebroadcast received messages with TTL
+- [x] 18a. RSSI-based contention forwarding — delay rebroadcast by signal strength, cancel on duplicate
+- [x] 19. Routing table — track neighbors, implement basic multi-hop routing
 
 ### Phase 5 — Gateway & Cloud
 - [ ] 20. Gateway role for Heltec (WiFi-capable) — aggregate mesh data, uplink to cloud
