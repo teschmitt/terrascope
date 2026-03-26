@@ -1,9 +1,13 @@
 #include <zephyr/ztest.h>
 #include "lora/cbor.h"
 #include "messages/messages.h"
+#include "routing/routing.h"
 
-#define TEST_ROUTE \
-    { .src = 0x0001, .dst = 0xFFFF, .msg_id = 42, .ttl = 5 }
+#define TEST_ROUTE                                                     \
+    {                                                                  \
+        .src = 0x0001, .dst = TS_ROUTING_BROADCAST_ADDR, .msg_id = 42, \
+        .ttl = TS_ROUTING_DEFAULT_TTL                                  \
+    }
 
 ZTEST(cbor, test_serialize_telemetry_returns_ok)
 {
@@ -101,7 +105,10 @@ ZTEST(cbor, test_roundtrip_telemetry)
 ZTEST(cbor, test_roundtrip_node_status)
 {
     struct ts_msg_lora_outgoing original = {
-        .route = {.src = 0x0003, .dst = 0xFFFF, .msg_id = 7, .ttl = 5},
+        .route = {.src = 0x0003,
+                  .dst = TS_ROUTING_BROADCAST_ADDR,
+                  .msg_id = 7,
+                  .ttl = TS_ROUTING_DEFAULT_TTL},
         .type = TS_MSG_NODE_STATUS,
         .data.node_status = {
             .timestamp = 5678, .uptime = 5678, .status = ERROR}};
@@ -117,9 +124,9 @@ ZTEST(cbor, test_roundtrip_node_status)
     zassert_ok(ret, "deserialize should succeed");
     zassert_equal(decoded.type, TS_MSG_NODE_STATUS);
     zassert_equal(decoded.route.src, 0x0003);
-    zassert_equal(decoded.route.dst, 0xFFFF);
+    zassert_equal(decoded.route.dst, TS_ROUTING_BROADCAST_ADDR);
     zassert_equal(decoded.route.msg_id, 7);
-    zassert_equal(decoded.route.ttl, 5);
+    zassert_equal(decoded.route.ttl, TS_ROUTING_DEFAULT_TTL);
     zassert_equal(decoded.data.node_status.timestamp, 5678);
     zassert_equal(decoded.data.node_status.uptime, 5678);
     zassert_equal(decoded.data.node_status.status, ERROR);

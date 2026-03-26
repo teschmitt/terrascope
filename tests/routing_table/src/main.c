@@ -142,7 +142,7 @@ ZTEST(routing_table, test_age_keeps_fresh)
 {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
 
-    ts_routing_table_age_seconds(300);
+    ts_routing_table_age_seconds(TS_ROUTING_TABLE_STALE_TIMEOUT_S);
 
     struct ts_neighbor nb;
     int ret = ts_routing_table_lookup(0x0002, &nb);

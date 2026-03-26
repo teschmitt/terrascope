@@ -18,39 +18,50 @@ static void before_each(void *fixture)
 
 ZTEST(contention, test_rssi_weakest_gives_zero_delay)
 {
-    zassert_equal(ts_contention_rssi_to_delay_ms(-120), 0,
-                  "Weakest RSSI should give 0 ms delay");
+    zassert_equal(ts_contention_rssi_to_delay_ms(TS_CONTENTION_RSSI_WEAK),
+                  TS_CONTENTION_DELAY_MIN_MS,
+                  "Weakest RSSI should give min delay");
 }
 
 ZTEST(contention, test_rssi_strongest_gives_max_delay)
 {
-    zassert_equal(ts_contention_rssi_to_delay_ms(-30), 5000,
-                  "Strongest RSSI should give 5000 ms delay");
+    zassert_equal(ts_contention_rssi_to_delay_ms(TS_CONTENTION_RSSI_STRONG),
+                  TS_CONTENTION_DELAY_MAX_MS,
+                  "Strongest RSSI should give max delay");
 }
 
 ZTEST(contention, test_rssi_below_range_clamped)
 {
-    zassert_equal(ts_contention_rssi_to_delay_ms(-130), 0,
-                  "RSSI below range should clamp to 0 ms");
+    zassert_equal(
+        ts_contention_rssi_to_delay_ms(TS_CONTENTION_RSSI_WEAK - 10),
+        TS_CONTENTION_DELAY_MIN_MS,
+        "RSSI below range should clamp to min delay");
 }
 
 ZTEST(contention, test_rssi_above_range_clamped)
 {
-    zassert_equal(ts_contention_rssi_to_delay_ms(-10), 5000,
-                  "RSSI above range should clamp to 5000 ms");
+    zassert_equal(
+        ts_contention_rssi_to_delay_ms(TS_CONTENTION_RSSI_STRONG + 20),
+        TS_CONTENTION_DELAY_MAX_MS,
+        "RSSI above range should clamp to max delay");
 }
 
 ZTEST(contention, test_rssi_midpoint)
 {
-    // (-75 - (-120)) * 5000 / (-30 - (-120)) = 45 * 5000 / 90 = 2500
-    zassert_equal(ts_contention_rssi_to_delay_ms(-75), 2500,
-                  "Midpoint RSSI should give 2500 ms delay");
+    int16_t mid = (TS_CONTENTION_RSSI_WEAK + TS_CONTENTION_RSSI_STRONG) / 2;
+    uint32_t expected =
+        (uint32_t)((mid - TS_CONTENTION_RSSI_WEAK) *
+                    TS_CONTENTION_DELAY_MAX_MS) /
+        (TS_CONTENTION_RSSI_STRONG - TS_CONTENTION_RSSI_WEAK);
+    zassert_equal(ts_contention_rssi_to_delay_ms(mid), expected,
+                  "Midpoint RSSI should give midpoint delay");
 }
 
 ZTEST(contention, test_rssi_monotonically_increasing)
 {
     uint32_t prev = 0;
-    for (int16_t rssi = -120; rssi <= -30; rssi++) {
+    for (int16_t rssi = TS_CONTENTION_RSSI_WEAK;
+         rssi <= TS_CONTENTION_RSSI_STRONG; rssi++) {
         uint32_t delay = ts_contention_rssi_to_delay_ms(rssi);
         zassert_true(delay >= prev,
                      "Delay must be monotonically increasing with RSSI");
@@ -63,7 +74,10 @@ ZTEST(contention, test_rssi_monotonically_increasing)
 static struct ts_msg_lora_outgoing make_msg(uint16_t src, uint32_t msg_id)
 {
     struct ts_msg_lora_outgoing msg = {
-        .route = {.src = src, .msg_id = msg_id, .dst = 0xFFFF, .ttl = 3},
+        .route = {.src = src,
+                  .msg_id = msg_id,
+                  .dst = TS_ROUTING_BROADCAST_ADDR,
+                  .ttl = 3},
         .type = TS_MSG_TELEMETRY,
     };
     return msg;
