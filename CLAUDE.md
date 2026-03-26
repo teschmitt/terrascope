@@ -47,7 +47,7 @@ The firmware uses **Zephyr Zbus** as its central message bus. All inter-module c
 ### Message Types
 
 Defined in `src/messages/messages.h` — a tagged union (`ts_msg_lora_outgoing`) with:
-- `TS_MSG_TELEMETRY` — temperature, humidity, pressure
+- `TS_MSG_TELEMETRY` — temperature (centi-°C), humidity (centi-%RH), pressure (Pa)
 - `TS_MSG_NODE_STATUS` — uptime, status
 
 ### Key Modules
@@ -55,14 +55,17 @@ Defined in `src/messages/messages.h` — a tagged union (`ts_msg_lora_outgoing`)
 | Module | Path | Role |
 |--------|------|------|
 | LoRa | `src/lora/` | Device init (SYS_INIT), config, outgoing thread, CBOR serialization |
-| Sensors | `src/sensors/` | Periodic sensor readings via work queue |
+| Sensors | `src/sensors/` | BME280 on RAK4631 via Zephyr sensor API; mock random data on QEMU. Conditional on `DT_HAS_COMPAT_STATUS_OKAY(bosch_bme280)` |
 | Messages | `src/messages/` | Shared message type definitions |
 | Logging | `src/logging/` | Zbus publish error logging helper |
 | Mock LoRa driver | `src/drivers/lora_mock.c` + `drivers/lora/` | Simulation driver, enabled via `CONFIG_LORA_MOCK=y` |
 
 ### Board Configuration
 
-Per-board configs live in `boards/`. The QEMU target enables the mock LoRa driver and wires it via a devicetree overlay (`boards/qemu_riscv64.overlay`). Custom DT bindings are in `dts/bindings/`.
+Per-board configs live in `boards/` as flat files using Zephyr's normalized board target naming (e.g., `rak4631_nrf52840.overlay`, `heltec_wifi_lora32_v2_esp32_procpu.conf`). Custom DT bindings are in `dts/bindings/`.
+
+- **QEMU**: enables mock LoRa driver via overlay and Kconfig
+- **RAK4631**: enables I2C, sensor subsystem, and wires BME280 on I2C0 (address 0x76) via overlay
 
 ## Code Style
 
