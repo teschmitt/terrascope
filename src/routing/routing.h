@@ -25,6 +25,7 @@ struct ts_route_header {
     uint16_t dst;
     uint32_t msg_id;
     uint8_t ttl;
+    uint8_t key_id;
 };
 
 /**

@@ -6,7 +6,7 @@
 #define TEST_ROUTE                                                     \
     {                                                                  \
         .src = 0x0001, .dst = TS_ROUTING_BROADCAST_ADDR, .msg_id = 42, \
-        .ttl = TS_ROUTING_DEFAULT_TTL                                  \
+        .ttl = TS_ROUTING_DEFAULT_TTL, .key_id = 0                     \
     }
 
 ZTEST(cbor, test_serialize_telemetry_returns_ok)
@@ -75,7 +75,8 @@ ZTEST(cbor, test_serialize_buffer_too_small)
 ZTEST(cbor, test_roundtrip_telemetry)
 {
     struct ts_msg_lora_outgoing original = {
-        .route = {.src = 0x0001, .dst = 0x0002, .msg_id = 99, .ttl = 3},
+        .route = {.src = 0x0001, .dst = 0x0002, .msg_id = 99, .ttl = 3,
+                  .key_id = 1},
         .type = TS_MSG_TELEMETRY,
         .data.telemetry = {.timestamp = 1234,
                            .temperature = 2500,
@@ -96,6 +97,7 @@ ZTEST(cbor, test_roundtrip_telemetry)
     zassert_equal(decoded.route.dst, 0x0002);
     zassert_equal(decoded.route.msg_id, 99);
     zassert_equal(decoded.route.ttl, 3);
+    zassert_equal(decoded.route.key_id, 1);
     zassert_equal(decoded.data.telemetry.timestamp, 1234);
     zassert_equal(decoded.data.telemetry.temperature, 2500);
     zassert_equal(decoded.data.telemetry.humidity, 6000);
@@ -108,7 +110,8 @@ ZTEST(cbor, test_roundtrip_node_status)
         .route = {.src = 0x0003,
                   .dst = TS_ROUTING_BROADCAST_ADDR,
                   .msg_id = 7,
-                  .ttl = TS_ROUTING_DEFAULT_TTL},
+                  .ttl = TS_ROUTING_DEFAULT_TTL,
+                  .key_id = 2},
         .type = TS_MSG_NODE_STATUS,
         .data.node_status = {
             .timestamp = 5678, .uptime = 5678, .status = ERROR}};
@@ -127,6 +130,7 @@ ZTEST(cbor, test_roundtrip_node_status)
     zassert_equal(decoded.route.dst, TS_ROUTING_BROADCAST_ADDR);
     zassert_equal(decoded.route.msg_id, 7);
     zassert_equal(decoded.route.ttl, TS_ROUTING_DEFAULT_TTL);
+    zassert_equal(decoded.route.key_id, 2);
     zassert_equal(decoded.data.node_status.timestamp, 5678);
     zassert_equal(decoded.data.node_status.uptime, 5678);
     zassert_equal(decoded.data.node_status.status, ERROR);

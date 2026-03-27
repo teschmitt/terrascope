@@ -10,7 +10,7 @@ LOG_MODULE_REGISTER(cbor);
 static int serialize_route(zcbor_state_t *state,
                            const struct ts_route_header *p_route) {
     if (!zcbor_tstr_put_lit(state, "route") ||
-        !zcbor_map_start_encode(state, 4) ||
+        !zcbor_map_start_encode(state, 5) ||
         !zcbor_tstr_put_lit(state, "src") ||
         !zcbor_uint32_put(state, (uint32_t)p_route->src) ||
         !zcbor_tstr_put_lit(state, "dst") ||
@@ -19,7 +19,9 @@ static int serialize_route(zcbor_state_t *state,
         !zcbor_uint32_put(state, p_route->msg_id) ||
         !zcbor_tstr_put_lit(state, "ttl") ||
         !zcbor_uint32_put(state, (uint32_t)p_route->ttl) ||
-        !zcbor_map_end_encode(state, 4)) {
+        !zcbor_tstr_put_lit(state, "key_id") ||
+        !zcbor_uint32_put(state, (uint32_t)p_route->key_id) ||
+        !zcbor_map_end_encode(state, 5)) {
         return -ENOMEM;
     }
     return 0;
@@ -108,7 +110,7 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
 
 static int deserialize_route(zcbor_state_t *state,
                              struct ts_route_header *p_route) {
-    uint32_t src, dst, msg_id, ttl;
+    uint32_t src, dst, msg_id, ttl, key_id;
 
     if (!zcbor_tstr_expect_lit(state, "route") ||
         !zcbor_map_start_decode(state) ||
@@ -120,6 +122,8 @@ static int deserialize_route(zcbor_state_t *state,
         !zcbor_uint32_decode(state, &msg_id) ||
         !zcbor_tstr_expect_lit(state, "ttl") ||
         !zcbor_uint32_decode(state, &ttl) ||
+        !zcbor_tstr_expect_lit(state, "key_id") ||
+        !zcbor_uint32_decode(state, &key_id) ||
         !zcbor_map_end_decode(state)) {
         return -EBADMSG;
     }
@@ -128,6 +132,7 @@ static int deserialize_route(zcbor_state_t *state,
     p_route->dst = (uint16_t)dst;
     p_route->msg_id = msg_id;
     p_route->ttl = (uint8_t)ttl;
+    p_route->key_id = (uint8_t)key_id;
     return 0;
 }
 
