@@ -13,8 +13,8 @@
 #include "lora/cbor.h"
 #include "messages/messages.h"
 
-#define LORA_OUT_THREAD_STACK_SIZE 1024
-#define LORA_IN_THREAD_STACK_SIZE 1024
+#define LORA_OUT_THREAD_STACK_SIZE 2048
+#define LORA_IN_THREAD_STACK_SIZE 2048
 
 /**
  * @brief Populate a LoRa modem config with the project's radio parameters.

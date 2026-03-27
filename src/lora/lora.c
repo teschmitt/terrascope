@@ -1,5 +1,6 @@
 #include "lora.h"
 
+#include "lora/auth.h"
 #include "lora/contention.h"
 #include "routing/routing.h"
 #include "routing/routing_table.h"
@@ -13,6 +14,8 @@
 #define LORA_RX_BUFFER_SIZE UINT8_MAX
 BUILD_ASSERT(LORA_RX_BUFFER_SIZE <= UINT8_MAX,
              "LORA_RX_BUFFER_SIZE exceeds lora_recv uint8_t size parameter");
+BUILD_ASSERT(ZBOR_ENCODE_BUFFER_SIZE > TS_AUTH_TAG_SIZE,
+             "CBOR buffer must be larger than auth tag to hold any payload");
 
 LOG_MODULE_REGISTER(lora);
 
@@ -93,17 +96,32 @@ int lora_out_task() {
             }
 
             LOG_DBG("Processing message type: %d", msg.type);
+            // Stamp key version here (not at publish site) so producers
+            // don't need to know about the auth module.
+            msg.route.key_id = ts_auth_get_key_id();
 
-            size_t size = 0;
-            ret = cbor_serialize(&msg, cbor_buffer, sizeof(cbor_buffer), &size);
+            // Reserve tail room for the auth tag that will be appended
+            // after the CBOR payload in the same contiguous buffer.
+            size_t cbor_size = 0;
+            ret = cbor_serialize(&msg, cbor_buffer,
+                                sizeof(cbor_buffer) - TS_AUTH_TAG_SIZE,
+                                &cbor_size);
             if (ret != 0) {
                 LOG_ERR("CBOR serialization failed: %d", ret);
                 continue;
             }
 
-            LOG_HEXDUMP_DBG(cbor_buffer, size, "CBOR encoded: ");
+            ret = ts_auth_sign(cbor_buffer, cbor_size,
+                               cbor_buffer + cbor_size);
+            if (ret != 0) {
+                LOG_ERR("Auth sign failed: %d", ret);
+                continue;
+            }
 
-            ret = lora_send(lora_dev, cbor_buffer, (uint32_t)size);
+            size_t total_size = cbor_size + TS_AUTH_TAG_SIZE;
+            LOG_HEXDUMP_DBG(cbor_buffer, total_size, "TX payload: ");
+
+            ret = lora_send(lora_dev, cbor_buffer, (uint32_t)total_size);
             if (ret < 0) {
                 LOG_ERR("LoRa send failed: %d", ret);
                 continue;
@@ -149,13 +167,39 @@ int lora_in_task() {
         LOG_INF("LoRa RX: %d bytes, RSSI=%d, SNR=%d", len, rssi, snr);
         LOG_HEXDUMP_DBG(rx_buffer, len, "LoRa RX raw: ");
 
+        // Verify auth before CBOR decode so unauthenticated packets
+        // never reach the parser — limits attack surface to the tag
+        // check alone.  Wire format: [CBOR payload | 8-byte CMAC tag].
+        if (len <= TS_AUTH_TAG_SIZE) {
+            LOG_WRN("Packet too short for auth tag (%d bytes)", len);
+            continue;
+        }
+
+        size_t cbor_len = (size_t)len - TS_AUTH_TAG_SIZE;
+        int ret = ts_auth_verify(rx_buffer, cbor_len,
+                                 rx_buffer + cbor_len);
+        if (ret != 0) {
+            LOG_WRN("Auth verification failed, dropping packet");
+            continue;
+        }
+
         struct ts_msg_lora_incoming in_msg = {0};
         in_msg.rssi = rssi;
         in_msg.snr = snr;
 
-        int ret = cbor_deserialize(rx_buffer, (size_t)len, &in_msg.msg);
+        ret = cbor_deserialize(rx_buffer, cbor_len, &in_msg.msg);
         if (ret != 0) {
             LOG_ERR("CBOR deserialization failed: %d", ret);
+            continue;
+        }
+
+        // key_id is checked after deserialize because it lives inside
+        // the CBOR-encoded route header.  This is safe: the CMAC already
+        // proved the packet is authentic, so a mismatched key_id just
+        // means the sender is on a different key rotation epoch.
+        if (in_msg.msg.route.key_id != ts_auth_get_key_id()) {
+            LOG_WRN("Key ID mismatch: got %u, expected %u",
+                    in_msg.msg.route.key_id, ts_auth_get_key_id());
             continue;
         }
 
