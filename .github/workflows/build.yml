@@ -16,8 +16,6 @@ jobs:
     container:
       image: ghcr.io/zephyrproject-rtos/zephyr-build:main
       options: --user root
-    env:
-      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-1.0.0
     strategy:
       fail-fast: false
       matrix:
@@ -43,6 +41,10 @@ jobs:
           restore-keys: |
             west-
 
+      - name: Find Zephyr SDK
+        id: sdk
+        run: echo "path=$(find /opt/toolchains -maxdepth 1 -name 'zephyr-sdk-*' -type d | head -1)" >> "$GITHUB_OUTPUT"
+
       - name: West init and update
         run: |
           west init -l terrascope
@@ -50,6 +52,8 @@ jobs:
 
       - name: Build ${{ matrix.board }}
         working-directory: terrascope
+        env:
+          ZEPHYR_SDK_INSTALL_DIR: ${{ steps.sdk.outputs.path }}
         run: west build -b ${{ matrix.board }} -p
 
   test:
@@ -57,8 +61,6 @@ jobs:
     container:
       image: ghcr.io/zephyrproject-rtos/zephyr-build:main
       options: --user root
-    env:
-      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-1.0.0
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -77,6 +79,10 @@ jobs:
           restore-keys: |
             west-
 
+      - name: Find Zephyr SDK
+        id: sdk
+        run: echo "path=$(find /opt/toolchains -maxdepth 1 -name 'zephyr-sdk-*' -type d | head -1)" >> "$GITHUB_OUTPUT"
+
       - name: West init and update
         run: |
           west init -l terrascope
@@ -84,6 +90,8 @@ jobs:
 
       - name: Run tests
         working-directory: terrascope
+        env:
+          ZEPHYR_SDK_INSTALL_DIR: ${{ steps.sdk.outputs.path }}
         run: west twister -T tests -p qemu_riscv64 --no-shuffle
 
       - name: Upload test report
