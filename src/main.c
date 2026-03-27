@@ -2,6 +2,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/zbus/zbus.h>
 #include "logging/logging.h"
+#include "lora/auth.h"
 #include "lora/lora.h"
 #include "messages/messages.h"
 #include "routing/routing.h"
@@ -47,6 +48,12 @@ K_TIMER_DEFINE(routing_table_age_timer, routing_table_age_timer_handler, NULL);
 int main() {
     LOG_INF("Terrascope v%s (%s %s) started", FIRMWARE_VERSION_STRING,
             BUILD_TIMESTAMP, GIT_COMMIT_HASH);
+
+    int auth_ret = ts_auth_init();
+    if (auth_ret != 0) {
+        LOG_ERR("Failed to initialize auth module: %d", auth_ret);
+        return auth_ret;
+    }
 
     ts_routing_init(TS_NODE_ID);
     ts_routing_table_init();

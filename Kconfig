@@ -6,3 +6,33 @@ source "Kconfig.zephyr"
 
 # Source our custom drivers
 rsource "drivers/*/Kconfig*"
+
+menu "Terrascope Network Security"
+
+config TS_NETWORK_KEY
+	string "Network authentication key (128-bit hex string)"
+	default "681312c55b1aadb66c15df53950b3145"
+	help
+	  128-bit shared key used for AES-128-CMAC message authentication.
+	  Specify as a 32-character hex string (16 bytes).
+
+	  All nodes in a deployment must be provisioned with the same key.
+	  The default value is for development only and must be changed
+	  before deploying to production hardware.
+
+	  For production builds, use platform-specific secure key storage
+	  instead (see SECURITY.md).
+
+config TS_KEY_ID
+	int "Active network key identifier (0-255)"
+	default 0
+	range 0 255
+	help
+	  Identifies which network key version this node uses.
+	  Nodes reject messages whose key_id does not match their own.
+	  Increment when rotating the network key so that nodes on
+	  different key versions do not silently accept each other's
+	  packets. Key updates are performed out-of-band (reflash or
+	  future provisioning command).
+
+endmenu
