@@ -10,7 +10,8 @@ This project creates a scalable, low-power mesh of sensor nodes that collect env
 - 🌐 **Mesh Networking** -- Multi-hop flooding with TTL, RSSI-based contention forwarding, duplicate suppression, and neighbor tracking
 - 🌡 **Sensor Support** -- BME280 environmental sensor (temperature, humidity, pressure) on RAK4631; mock data on QEMU
 - 🛠 **Modular Architecture** -- Zephyr Zbus message bus with clear separation of sensor, LoRa, routing, and message modules
-- 🧪 **Testable** -- 48 unit tests across CBOR, routing, contention, and neighbor table modules; mock LoRa driver with loopback for full pipeline testing in QEMU
+- 🔒 **Network Security** -- AES-128-CMAC message authentication (PSA Crypto API), per-deployment network key, key rotation via `key_id`
+- 🧪 **Testable** -- 55 unit tests across CBOR, routing, contention, neighbor table, and auth modules; mock LoRa driver with loopback for full pipeline testing in QEMU
 - 🔄 **CI/CD** -- GitHub Actions matrix build for all targets plus unit tests via `west twister`
 
 ## Supported Hardware
@@ -104,7 +105,7 @@ radio ~~~> +-----------+     +-------------+
 
 ### Message Types
 
-Defined in `src/messages/messages.h` as a tagged union (`ts_msg_lora_outgoing`). Every message carries a route header (`src`, `dst`, `msg_id`, `ttl`) for mesh forwarding.
+Defined in `src/messages/messages.h` as a tagged union (`ts_msg_lora_outgoing`). Every message carries a route header (`src`, `dst`, `msg_id`, `ttl`, `key_id`) for mesh forwarding. An 8-byte AES-128-CMAC tag is appended after the CBOR payload on the wire.
 
 | Type                 | Fields                                     | Units                      |
 | -------------------- | ------------------------------------------ | -------------------------- |
@@ -115,7 +116,7 @@ Defined in `src/messages/messages.h` as a tagged union (`ts_msg_lora_outgoing`).
 
 | Module           | Path                      | Role                                                                          |
 | ---------------- | ------------------------- | ----------------------------------------------------------------------------- |
-| LoRa             | `src/lora/`               | Device init, config, TX/RX threads, CBOR serialization, contention forwarding |
+| LoRa             | `src/lora/`               | Device init, config, TX/RX threads, CBOR serialization, contention forwarding, message authentication |
 | Routing          | `src/routing/`            | Node addressing, TTL, duplicate detection, neighbor table                     |
 | Sensors          | `src/sensors/`            | Sensor backend abstraction; BME280 on RAK4631, mock on QEMU                   |
 | Messages         | `src/messages/`           | Shared message type definitions (including route header)                      |
@@ -139,17 +140,18 @@ terrascope/
 ├── dts/bindings/               Custom devicetree bindings
 ├── src/
 │   ├── drivers/lora_mock.c     Mock LoRa driver (loopback via k_msgq)
-│   ├── lora/                   LoRa TX/RX tasks, CBOR, contention forwarding
+│   ├── lora/                   LoRa TX/RX tasks, CBOR, contention forwarding, auth
 │   ├── routing/                Node addressing, duplicate detection, neighbor table
 │   ├── messages/               Message type definitions (with route header)
 │   ├── sensors/                Sensor backend abstraction (BME280 or mock)
 │   ├── logging/                Zbus error logging helper
 │   └── main.c                  Entry point, zbus channels, routing init
 ├── tests/
-│   ├── cbor/                   CBOR serialization tests (8 tests)
-│   ├── routing/                Routing logic tests (16 tests)
-│   ├── contention/             Contention forwarding tests (10 tests)
-│   └── routing_table/          Neighbor table tests (14 tests)
+│   ├── auth/                   Auth sign/verify tests (7 tests)
+│   ├── cbor/                   CBOR serialization tests (9 tests)
+│   ├── routing/                Routing logic tests (15 tests)
+│   ├── contention/             Contention forwarding tests (11 tests)
+│   └── routing_table/          Neighbor table tests (13 tests)
 ├── prj.conf                    Common Kconfig
 ├── CMakeLists.txt              Build configuration
 ├── Kconfig                     Application Kconfig root
@@ -173,9 +175,11 @@ See `CLAUDE.md` for full coding guidelines.
 - Phase 2 -- Tests & LoRa Receive (CBOR tests, deserialization, RX task, mock loopback)
 - Phase 3 -- Real Sensor Integration (BME280 on RAK4631, sensor backend abstraction)
 - Phase 4 -- Mesh Networking (node addressing, flooding with TTL, RSSI contention forwarding, neighbor routing table)
+- Phase 5 -- Network Security (AES-128-CMAC auth, network key provisioning, key rotation via key_id)
 
 **Planned:**
-- Phase 5 -- Gateway & Cloud (Heltec WiFi uplink, low-power optimization)
+- Phase 6 -- Runtime Configuration (NVS-backed settings, remote config via mesh)
+- Phase 7 -- Gateway & Cloud (Heltec WiFi uplink, low-power optimization)
 
 See `PLAN.md` for the full roadmap.
 

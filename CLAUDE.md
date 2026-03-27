@@ -42,7 +42,8 @@ The firmware uses **Zephyr Zbus** as its central message bus. All inter-module c
 
 1. **Sensor manager** (`src/sensors/`) reads sensors on a periodic timer (K_TIMER → K_WORK → system workqueue), publishes `TS_MSG_TELEMETRY` to the outgoing channel
 2. **Main loop** periodically publishes `TS_MSG_NODE_STATUS` heartbeats
-3. **LoRa output task** (`src/lora/`) runs in its own thread, subscribes to the channel, CBOR-encodes messages with zcbor, and transmits via the LoRa radio
+3. **LoRa output task** (`src/lora/`) runs in its own thread, subscribes to the channel, stamps `key_id`, CBOR-encodes with zcbor, appends AES-128-CMAC auth tag, and transmits via the LoRa radio
+4. **LoRa receive task** verifies auth tag, CBOR-decodes, checks `key_id`, applies flooding/routing logic
 
 ### Message Types
 
@@ -54,7 +55,8 @@ Defined in `src/messages/messages.h` — a tagged union (`ts_msg_lora_outgoing`)
 
 | Module | Path | Role |
 |--------|------|------|
-| LoRa | `src/lora/` | Device init (SYS_INIT), config, outgoing thread, CBOR serialization |
+| LoRa | `src/lora/` | Device init (SYS_INIT), config, TX/RX threads, CBOR serialization, contention forwarding, AES-128-CMAC auth |
+| Routing | `src/routing/` | Node addressing, TTL, duplicate detection, neighbor table |
 | Sensors | `src/sensors/` | BME280 on RAK4631 via Zephyr sensor API; mock random data on QEMU. Conditional on `DT_HAS_COMPAT_STATUS_OKAY(bosch_bme280)` |
 | Messages | `src/messages/` | Shared message type definitions |
 | Logging | `src/logging/` | Zbus publish error logging helper |
