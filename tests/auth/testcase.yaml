@@ -1,0 +1,4 @@
+tests:
+  terrascope.auth:
+    tags: auth security
+    platform_allow: qemu_riscv64

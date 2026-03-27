@@ -1,0 +1,10 @@
+source "Kconfig.zephyr"
+
+config TS_NETWORK_KEY
+	string "Network authentication key (128-bit hex string)"
+	default "000102030405060708090a0b0c0d0e0f"
+
+config TS_KEY_ID
+	int "Active network key identifier"
+	default 0
+	range 0 255
