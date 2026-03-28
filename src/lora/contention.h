@@ -48,6 +48,22 @@ struct ts_contention_slot {
 void ts_contention_init(void);
 
 /**
+ * @brief Delayed work handler that forwards a contention slot's message.
+ *
+ * Runs on the system work queue when a slot's delay timer expires.
+ * Uses a copy-then-release pattern: the slot's message is copied and
+ * the slot is freed under the pool mutex, then the zbus publish
+ * happens outside the lock so it cannot stall schedule/cancel calls
+ * on the RX thread.
+ *
+ * If the slot was already cancelled (occupied == false), the handler
+ * returns immediately.
+ *
+ * @param work  Pointer to the k_work embedded in k_work_delayable
+ */
+void ts_contention_work_handler(struct k_work *work);
+
+/**
  * @brief Schedule a message for delayed forwarding based on RSSI.
  *
  * Weaker signal results in shorter delay (forward sooner).

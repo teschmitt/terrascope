@@ -29,7 +29,11 @@ K_THREAD_DEFINE(lora_in_tid, LORA_IN_THREAD_STACK_SIZE, lora_in_task, NULL,
                 NULL, NULL, 3, 0, 0);
 
 static const struct device* lora_dev;
-static bool lora_config_done = false;
+// Semaphore: replaces the plain bool lora_config_done flag.  SYS_INIT
+// gives the semaphore after configuring the radio; both TX and RX
+// threads take-then-regive it to wait without polling and with a
+// proper memory barrier so all preceding config writes are visible.
+static K_SEM_DEFINE(lora_ready_sem, 0, 1);
 static uint8_t cbor_buffer[ZBOR_ENCODE_BUFFER_SIZE];
 
 // Initialize the LoRa device reference
@@ -63,18 +67,19 @@ bool lora_config_ready_device(struct lora_modem_config* config) {
     config->public_network = false;
     config->tx_power = 4;
     config->tx = true;
-    lora_config_done = true;
+    k_sem_give(&lora_ready_sem);
     return true;
 }
 
 int lora_out_task() {
     const struct zbus_channel* chan;
 
-    // Wait for LoRa device to be ready, retrying every 5 seconds
-    while (!device_is_ready(lora_dev) || !lora_config_done) {
-        LOG_WRN("LoRa device not ready, retrying in 5s");
-        k_sleep(K_SECONDS(5));
-    }
+    // Block until SYS_INIT has configured the radio and signalled
+    // readiness.  The semaphore acts as a memory barrier so all
+    // config writes made before k_sem_give are visible here.
+    k_sem_take(&lora_ready_sem, K_FOREVER);
+    // Re-give so the other thread (RX) can also proceed.
+    k_sem_give(&lora_ready_sem);
 
     LOG_INF("LoRa output task started");
 
@@ -140,10 +145,9 @@ int lora_in_task() {
     // the TX and RX threads without needing a mutex
     static uint8_t rx_buffer[LORA_RX_BUFFER_SIZE];
 
-    while (!device_is_ready(lora_dev) || !lora_config_done) {
-        LOG_WRN("LoRa device not ready for RX, retrying in 5s");
-        k_sleep(K_SECONDS(5));
-    }
+    // Block until SYS_INIT has configured the radio.
+    k_sem_take(&lora_ready_sem, K_FOREVER);
+    k_sem_give(&lora_ready_sem);
 
     ts_contention_init();
     LOG_INF("LoRa receive task started");

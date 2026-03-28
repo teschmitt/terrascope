@@ -3,12 +3,16 @@
 #include <errno.h>
 #include <string.h>
 
+#include <zephyr/sys/atomic.h>
+
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(routing);
 
 static uint16_t self_node_id;
-static uint32_t next_msg_id;
+// Atomic: incremented from both the main thread (heartbeat) and the
+// system work queue (sensor timer), so a plain uint32_t would race.
+static atomic_t next_msg_id;
 
 // Ring buffer for duplicate detection
 static struct {
@@ -20,7 +24,7 @@ static uint32_t seen_count;
 
 void ts_routing_init(uint16_t node_id) {
     self_node_id = node_id;
-    next_msg_id = 0;
+    atomic_set(&next_msg_id, 0);
     seen_write_idx = 0;
     seen_count = 0;
     memset(seen_cache, 0, sizeof(seen_cache));
@@ -33,7 +37,7 @@ uint16_t ts_routing_get_node_id(void) {
 void ts_routing_prepare_header(struct ts_route_header *p_hdr, uint16_t dst) {
     p_hdr->src = self_node_id;
     p_hdr->dst = dst;
-    p_hdr->msg_id = next_msg_id++;
+    p_hdr->msg_id = (uint32_t)atomic_inc(&next_msg_id);
     p_hdr->ttl = TS_ROUTING_DEFAULT_TTL;
 }
 
