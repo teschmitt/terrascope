@@ -1,17 +1,16 @@
-#include "sensors/sensor_backend.h"
-
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
-
 #include <zephyr/logging/log.h>
+
+#include "sensors/sensor_backend.h"
 
 LOG_MODULE_REGISTER(sensor_bme280);
 
-static const struct device *const bme280 =
+static const struct device* const bme280 =
     DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(bosch_bme280));
 
-int ts_sensor_backend_read(struct ts_msg_telemetry *p_tel) {
+int ts_sensor_backend_read(struct ts_msg_telemetry* p_tel) {
     struct sensor_value val;
 
     if (!device_is_ready(bme280)) {

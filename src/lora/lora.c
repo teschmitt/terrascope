@@ -1,11 +1,11 @@
 #include "lora.h"
 
+#include <zephyr/logging/log.h>
+
 #include "lora/auth.h"
 #include "lora/contention.h"
 #include "routing/routing.h"
 #include "routing/routing_table.h"
-
-#include <zephyr/logging/log.h>
 
 #define LORA_CHAN_OUT_READ_TIMEOUT K_MSEC(1)
 #define LORA_RECV_TIMEOUT K_MSEC(1000)
@@ -109,15 +109,14 @@ int lora_out_task() {
             // after the CBOR payload in the same contiguous buffer.
             size_t cbor_size = 0;
             ret = cbor_serialize(&msg, cbor_buffer,
-                                sizeof(cbor_buffer) - TS_AUTH_TAG_SIZE,
-                                &cbor_size);
+                                 sizeof(cbor_buffer) - TS_AUTH_TAG_SIZE,
+                                 &cbor_size);
             if (ret != 0) {
                 LOG_ERR("CBOR serialization failed: %d", ret);
                 continue;
             }
 
-            ret = ts_auth_sign(cbor_buffer, cbor_size,
-                               cbor_buffer + cbor_size);
+            ret = ts_auth_sign(cbor_buffer, cbor_size, cbor_buffer + cbor_size);
             if (ret != 0) {
                 LOG_ERR("Auth sign failed: %d", ret);
                 continue;
@@ -180,8 +179,7 @@ int lora_in_task() {
         }
 
         size_t cbor_len = (size_t)len - TS_AUTH_TAG_SIZE;
-        int ret = ts_auth_verify(rx_buffer, cbor_len,
-                                 rx_buffer + cbor_len);
+        int ret = ts_auth_verify(rx_buffer, cbor_len, rx_buffer + cbor_len);
         if (ret != 0) {
             LOG_WRN("Auth verification failed, dropping packet");
             continue;
@@ -208,16 +206,13 @@ int lora_in_task() {
         }
 
         // Flooding: drop own messages that returned via other nodes
-        if (in_msg.msg.route.src == ts_routing_get_node_id()) {
-            continue;
-        }
+        if (in_msg.msg.route.src == ts_routing_get_node_id()) { continue; }
 
         // Flooding: drop duplicates and cancel any pending contention forward
         if (ts_routing_is_duplicate(&in_msg.msg.route)) {
             LOG_DBG("Dropping duplicate msg_id=%u from 0x%04x",
                     in_msg.msg.route.msg_id, in_msg.msg.route.src);
-            ts_contention_cancel(in_msg.msg.route.src,
-                                 in_msg.msg.route.msg_id);
+            ts_contention_cancel(in_msg.msg.route.src, in_msg.msg.route.msg_id);
             continue;
         }
         ts_routing_mark_seen(&in_msg.msg.route);
@@ -227,7 +222,7 @@ int lora_in_task() {
         // Deliver locally if addressed to this node or broadcast
         if (ts_routing_is_for_us(&in_msg.msg.route)) {
             ret = zbus_chan_pub(&ts_lora_in_chan, &in_msg,
-                               LORA_CHAN_IN_PUB_TIMEOUT);
+                                LORA_CHAN_IN_PUB_TIMEOUT);
             if (ret != 0) {
                 LOG_ERR("Failed to publish incoming message: %d", ret);
             }

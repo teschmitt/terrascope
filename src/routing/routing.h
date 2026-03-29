@@ -53,7 +53,7 @@ uint16_t ts_routing_get_node_id(void);
  * @param p_hdr  Output routing header to populate
  * @param dst    Destination node ID or TS_ROUTING_BROADCAST_ADDR
  */
-void ts_routing_prepare_header(struct ts_route_header *p_hdr, uint16_t dst);
+void ts_routing_prepare_header(struct ts_route_header* p_hdr, uint16_t dst);
 
 /**
  * @brief Decrement TTL on a routing header.
@@ -61,7 +61,7 @@ void ts_routing_prepare_header(struct ts_route_header *p_hdr, uint16_t dst);
  * @param p_hdr  Routing header to modify
  * @return 0 if still valid after decrement, -EHOSTUNREACH if already expired
  */
-int ts_routing_decrement_ttl(struct ts_route_header *p_hdr);
+int ts_routing_decrement_ttl(struct ts_route_header* p_hdr);
 
 /**
  * @brief Check if a message is addressed to this node.
@@ -69,7 +69,7 @@ int ts_routing_decrement_ttl(struct ts_route_header *p_hdr);
  * @param p_hdr  Routing header to check
  * @return true if dst matches this node's ID or is broadcast
  */
-bool ts_routing_is_for_us(const struct ts_route_header *p_hdr);
+bool ts_routing_is_for_us(const struct ts_route_header* p_hdr);
 
 /**
  * @brief Check if a message has been seen before.
@@ -77,14 +77,14 @@ bool ts_routing_is_for_us(const struct ts_route_header *p_hdr);
  * @param p_hdr  Routing header to check
  * @return true if the (src, msg_id) pair is in the seen cache
  */
-bool ts_routing_is_duplicate(const struct ts_route_header *p_hdr);
+bool ts_routing_is_duplicate(const struct ts_route_header* p_hdr);
 
 /**
  * @brief Record a message in the duplicate detection cache.
  *
  * @param p_hdr  Routing header to record
  */
-void ts_routing_mark_seen(const struct ts_route_header *p_hdr);
+void ts_routing_mark_seen(const struct ts_route_header* p_hdr);
 
 /** @} */
 

@@ -10,6 +10,7 @@
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/zbus/zbus.h>
+
 #include "lora/cbor.h"
 #include "messages/messages.h"
 

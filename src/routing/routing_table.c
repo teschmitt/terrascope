@@ -2,12 +2,10 @@
 
 #include <errno.h>
 #include <string.h>
-
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 #include "routing/routing.h"
-
-#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(routing_table);
 
@@ -19,7 +17,7 @@ LOG_MODULE_REGISTER(routing_table);
 static K_MUTEX_DEFINE(table_mutex);
 static struct ts_neighbor table[TS_ROUTING_TABLE_SIZE];
 
-static struct ts_neighbor *find_by_node_id(uint16_t node_id) {
+static struct ts_neighbor* find_by_node_id(uint16_t node_id) {
     for (int i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
         if (table[i].occupied && table[i].node_id == node_id) {
             return &table[i];
@@ -28,17 +26,15 @@ static struct ts_neighbor *find_by_node_id(uint16_t node_id) {
     return NULL;
 }
 
-static struct ts_neighbor *find_free_slot(void) {
+static struct ts_neighbor* find_free_slot(void) {
     for (int i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
-        if (!table[i].occupied) {
-            return &table[i];
-        }
+        if (!table[i].occupied) { return &table[i]; }
     }
     return NULL;
 }
 
-static struct ts_neighbor *find_oldest(void) {
-    struct ts_neighbor *oldest = NULL;
+static struct ts_neighbor* find_oldest(void) {
+    struct ts_neighbor* oldest = NULL;
     for (int i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
         if (table[i].occupied) {
             if (oldest == NULL || table[i].last_seen < oldest->last_seen) {
@@ -62,15 +58,13 @@ int ts_routing_table_update(uint16_t node_id, int16_t rssi, int8_t snr,
 
     k_mutex_lock(&table_mutex, K_FOREVER);
 
-    struct ts_neighbor *entry = find_by_node_id(node_id);
+    struct ts_neighbor* entry = find_by_node_id(node_id);
     if (entry != NULL) {
         entry->rssi = rssi;
         entry->snr = snr;
         entry->last_seen = now;
         // Never downgrade direct flag
-        if (is_direct) {
-            entry->direct = true;
-        }
+        if (is_direct) { entry->direct = true; }
         k_mutex_unlock(&table_mutex);
         return 0;
     }
@@ -78,8 +72,7 @@ int ts_routing_table_update(uint16_t node_id, int16_t rssi, int8_t snr,
     entry = find_free_slot();
     if (entry == NULL) {
         entry = find_oldest();
-        LOG_DBG("Evicting neighbor 0x%04x for 0x%04x", entry->node_id,
-                node_id);
+        LOG_DBG("Evicting neighbor 0x%04x for 0x%04x", entry->node_id, node_id);
     }
 
     entry->node_id = node_id;
@@ -93,10 +86,9 @@ int ts_routing_table_update(uint16_t node_id, int16_t rssi, int8_t snr,
     return 0;
 }
 
-int ts_routing_table_lookup(uint16_t node_id,
-                            struct ts_neighbor *p_neighbor) {
+int ts_routing_table_lookup(uint16_t node_id, struct ts_neighbor* p_neighbor) {
     k_mutex_lock(&table_mutex, K_FOREVER);
-    struct ts_neighbor *entry = find_by_node_id(node_id);
+    struct ts_neighbor* entry = find_by_node_id(node_id);
     if (entry == NULL) {
         k_mutex_unlock(&table_mutex);
         return -ENOENT;
@@ -112,8 +104,7 @@ int ts_routing_table_age_seconds(uint32_t max_age_s) {
 
     k_mutex_lock(&table_mutex, K_FOREVER);
     for (int i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
-        if (table[i].occupied &&
-            (now - table[i].last_seen) >= max_age_s) {
+        if (table[i].occupied && (now - table[i].last_seen) >= max_age_s) {
             LOG_DBG("Aging out neighbor 0x%04x", table[i].node_id);
             table[i].occupied = false;
             removed++;
@@ -127,9 +118,7 @@ uint32_t ts_routing_table_count(void) {
     uint32_t count = 0;
     k_mutex_lock(&table_mutex, K_FOREVER);
     for (int i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
-        if (table[i].occupied) {
-            count++;
-        }
+        if (table[i].occupied) { count++; }
     }
     k_mutex_unlock(&table_mutex);
     return count;

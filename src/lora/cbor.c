@@ -7,8 +7,8 @@
 
 LOG_MODULE_REGISTER(cbor);
 
-static int serialize_route(zcbor_state_t *state,
-                           const struct ts_route_header *p_route) {
+static int serialize_route(zcbor_state_t* state,
+                           const struct ts_route_header* p_route) {
     if (!zcbor_tstr_put_lit(state, "route") ||
         !zcbor_map_start_encode(state, 5) ||
         !zcbor_tstr_put_lit(state, "src") ||
@@ -29,7 +29,6 @@ static int serialize_route(zcbor_state_t *state,
 
 int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
                    size_t buf_len, size_t* p_size) {
-
     ZCBOR_STATE_E(enc_state, 0, p_buf, buf_len, 0);
     int ret;
 
@@ -108,8 +107,8 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
     return 0;
 }
 
-static int deserialize_route(zcbor_state_t *state,
-                             struct ts_route_header *p_route) {
+static int deserialize_route(zcbor_state_t* state,
+                             struct ts_route_header* p_route) {
     uint32_t src, dst, msg_id, ttl, key_id;
 
     if (!zcbor_tstr_expect_lit(state, "route") ||
@@ -123,8 +122,7 @@ static int deserialize_route(zcbor_state_t *state,
         !zcbor_tstr_expect_lit(state, "ttl") ||
         !zcbor_uint32_decode(state, &ttl) ||
         !zcbor_tstr_expect_lit(state, "key_id") ||
-        !zcbor_uint32_decode(state, &key_id) ||
-        !zcbor_map_end_decode(state)) {
+        !zcbor_uint32_decode(state, &key_id) || !zcbor_map_end_decode(state)) {
         return -EBADMSG;
     }
 
@@ -173,9 +171,7 @@ static int deserialize_node_status(zcbor_state_t* state,
 
 int cbor_deserialize(const uint8_t* p_buf, size_t buf_len,
                      struct ts_msg_lora_outgoing* p_msg) {
-    if (p_buf == NULL || buf_len == 0) {
-        return -EINVAL;
-    }
+    if (p_buf == NULL || buf_len == 0) { return -EINVAL; }
 
     // 2 backups for nested containers (outer map + route/data map)
     ZCBOR_STATE_D(dec_state, 2, p_buf, buf_len, 1, 0);

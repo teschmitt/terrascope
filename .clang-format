@@ -4,39 +4,45 @@ BasedOnStyle: Google
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-IncludeBlocks: Merge
-IndentGotoLabels: true
-KeepEmptyLinesAtTheStartOfBlocks: true
-
-# Additional Google style settings that are implicit
 ColumnLimit: 80
-BreakBeforeBraces: Attach
-AlignParameters: true
-BinPackArguments: true
-BinPackParameters: true
-BreakConstructorInitializers: BeforeComma
-ContinuationIndentWidth: 4
-Cpp11BracedListStyle: true
-DerivePointerAlignment: false
-PointerAlignment: Left
-SpaceAfterCStyleCast: false
-SpaceBeforeParens: ControlStatements
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
-Standard: c++17
 
-# Embedded-friendly additions
-AlignConsecutiveDeclarations: false
-AlignConsecutiveAssignments: false
-AlignTrailingComments: true
+# Braces and blocks
+BreakBeforeBraces: Attach
 AllowShortBlocksOnASingleLine: Always
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
-CompactNamespaces: false
-FixNamespaceComments: true
 IndentCaseLabels: true
-MaxEmptyLinesToKeep: 1
-NamespaceIndentation: None
+IndentGotoLabels: true
+
+# Alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: false
+AlignTrailingComments: true
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# Packing and wrapping
+BinPackArguments: true
+BinPackParameters: true
+ContinuationIndentWidth: 4
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+
+# Includes
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Zephyr / system headers
+  - Regex: '^<'
+    Priority: 1
+  # Project headers
+  - Regex: '^"'
+    Priority: 2
 SortIncludes: true
-SortUsingDeclarations: true
+
+# Misc
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1

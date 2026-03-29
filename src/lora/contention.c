@@ -1,10 +1,8 @@
 #include "lora/contention.h"
 
 #include <errno.h>
-
-#include <zephyr/zbus/zbus.h>
-
 #include <zephyr/logging/log.h>
+#include <zephyr/zbus/zbus.h>
 
 LOG_MODULE_REGISTER(contention);
 
@@ -19,17 +17,15 @@ static K_MUTEX_DEFINE(pool_mutex);
 static struct ts_contention_slot pool[TS_CONTENTION_POOL_SIZE];
 static bool pool_initialized;
 
-static struct ts_contention_slot *find_free_slot(void) {
+static struct ts_contention_slot* find_free_slot(void) {
     for (int i = 0; i < TS_CONTENTION_POOL_SIZE; i++) {
-        if (!pool[i].occupied) {
-            return &pool[i];
-        }
+        if (!pool[i].occupied) { return &pool[i]; }
     }
     return NULL;
 }
 
-static struct ts_contention_slot *find_slot_by_msg(uint16_t src,
-                                                    uint32_t msg_id) {
+static struct ts_contention_slot* find_slot_by_msg(uint16_t src,
+                                                   uint32_t msg_id) {
     for (int i = 0; i < TS_CONTENTION_POOL_SIZE; i++) {
         if (pool[i].occupied && pool[i].src == src &&
             pool[i].msg_id == msg_id) {
@@ -39,9 +35,9 @@ static struct ts_contention_slot *find_slot_by_msg(uint16_t src,
     return NULL;
 }
 
-void ts_contention_work_handler(struct k_work *work) {
-    struct k_work_delayable *dwork = k_work_delayable_from_work(work);
-    struct ts_contention_slot *slot =
+void ts_contention_work_handler(struct k_work* work) {
+    struct k_work_delayable* dwork = k_work_delayable_from_work(work);
+    struct ts_contention_slot* slot =
         CONTAINER_OF(dwork, struct ts_contention_slot, work);
 
     // Copy-then-release: take the message out of the slot under the
@@ -90,8 +86,7 @@ void ts_contention_init(void) {
 uint32_t ts_contention_rssi_to_delay_ms(int16_t rssi) {
     if (rssi <= TS_CONTENTION_RSSI_WEAK) {
         return TS_CONTENTION_DELAY_MIN_MS;
-    }
-    if (rssi >= TS_CONTENTION_RSSI_STRONG) {
+    } else if (rssi >= TS_CONTENTION_RSSI_STRONG) {
         return TS_CONTENTION_DELAY_MAX_MS;
     }
 
@@ -101,10 +96,10 @@ uint32_t ts_contention_rssi_to_delay_ms(int16_t rssi) {
     return (uint32_t)((offset * TS_CONTENTION_DELAY_MAX_MS) / range);
 }
 
-int ts_contention_schedule(const struct ts_msg_lora_outgoing *p_msg,
+int ts_contention_schedule(const struct ts_msg_lora_outgoing* p_msg,
                            int16_t rssi) {
     k_mutex_lock(&pool_mutex, K_FOREVER);
-    struct ts_contention_slot *slot = find_free_slot();
+    struct ts_contention_slot* slot = find_free_slot();
     if (slot == NULL) {
         k_mutex_unlock(&pool_mutex);
         LOG_WRN("Contention pool full, dropping forward for msg_id=%u",
@@ -128,7 +123,7 @@ int ts_contention_schedule(const struct ts_msg_lora_outgoing *p_msg,
 
 int ts_contention_cancel(uint16_t src, uint32_t msg_id) {
     k_mutex_lock(&pool_mutex, K_FOREVER);
-    struct ts_contention_slot *slot = find_slot_by_msg(src, msg_id);
+    struct ts_contention_slot* slot = find_slot_by_msg(src, msg_id);
     if (slot == NULL) {
         k_mutex_unlock(&pool_mutex);
         return -ENOENT;

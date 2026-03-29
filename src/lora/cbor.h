@@ -9,6 +9,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
 #include "messages/messages.h"
 
 /** @brief Maximum buffer size for CBOR encoding. */

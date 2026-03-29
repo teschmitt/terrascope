@@ -17,7 +17,7 @@
  * @param p_tel  Output telemetry struct to populate
  * @return 0 on success, negative errno on failure
  */
-int ts_sensor_backend_read(struct ts_msg_telemetry *p_tel);
+int ts_sensor_backend_read(struct ts_msg_telemetry* p_tel);
 
 /** @} */
 

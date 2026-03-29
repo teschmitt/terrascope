@@ -13,13 +13,12 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
 #include <zephyr/kernel.h>
 
 #include "messages/messages.h"
 
 /** @brief Number of concurrent pending forwards. */
-#define TS_CONTENTION_POOL_SIZE 4
+#define TS_CONTENTION_POOL_SIZE 32
 
 /** @brief Minimum forwarding delay in milliseconds (weakest signal). */
 #define TS_CONTENTION_DELAY_MIN_MS 0
@@ -61,7 +60,7 @@ void ts_contention_init(void);
  *
  * @param work  Pointer to the k_work embedded in k_work_delayable
  */
-void ts_contention_work_handler(struct k_work *work);
+void ts_contention_work_handler(struct k_work* work);
 
 /**
  * @brief Schedule a message for delayed forwarding based on RSSI.
@@ -72,7 +71,7 @@ void ts_contention_work_handler(struct k_work *work);
  * @param rssi   Received signal strength (dBm)
  * @return 0 on success, -ENOMEM if no free slot
  */
-int ts_contention_schedule(const struct ts_msg_lora_outgoing *p_msg,
+int ts_contention_schedule(const struct ts_msg_lora_outgoing* p_msg,
                            int16_t rssi);
 
 /**

@@ -44,9 +44,7 @@ static int lora_mock_send(const struct device* dev, uint8_t* data,
 
     LOG_INF("Mock LoRa send: %d bytes", data_len);
 
-    if (data_len > MOCK_LOOPBACK_BUF_SIZE) {
-        return -EMSGSIZE;
-    }
+    if (data_len > MOCK_LOOPBACK_BUF_SIZE) { return -EMSGSIZE; }
 
     // Queue the packet for the receive side
     struct lora_mock_packet pkt = {0};
@@ -68,16 +66,10 @@ static int lora_mock_recv(const struct device* dev, uint8_t* data, uint8_t size,
     struct lora_mock_packet pkt;
 
     int ret = k_msgq_get(&drv_data->rx_msgq, &pkt, timeout);
-    if (ret == -EAGAIN || ret == -ENOMSG) {
-        return -EAGAIN;
-    }
-    if (ret != 0) {
-        return ret;
-    }
+    if (ret == -EAGAIN || ret == -ENOMSG) { return -EAGAIN; }
+    if (ret != 0) { return ret; }
 
-    if (pkt.len > size) {
-        return -ENOMEM;
-    }
+    if (pkt.len > size) { return -ENOMEM; }
 
     memcpy(data, pkt.data, pkt.len);
     *rssi = -42;

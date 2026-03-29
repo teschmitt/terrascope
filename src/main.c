@@ -1,6 +1,7 @@
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/zbus/zbus.h>
+
 #include "logging/logging.h"
 #include "lora/auth.h"
 #include "lora/lora.h"
@@ -36,11 +37,11 @@ void sensor_periodic_timer_handler(struct k_timer* dummy) {
 K_TIMER_DEFINE(sensor_periodic_timer, sensor_periodic_timer_handler, NULL);
 
 // Periodic routing table aging
-static void routing_table_age_handler(struct k_work *work) {
+static void routing_table_age_handler(struct k_work* work) {
     ts_routing_table_age_seconds(TS_ROUTING_TABLE_STALE_TIMEOUT_S);
 }
 K_WORK_DEFINE(routing_table_age_work, routing_table_age_handler);
-static void routing_table_age_timer_handler(struct k_timer *dummy) {
+static void routing_table_age_timer_handler(struct k_timer* dummy) {
     k_work_submit(&routing_table_age_work);
 }
 K_TIMER_DEFINE(routing_table_age_timer, routing_table_age_timer_handler, NULL);
@@ -67,9 +68,7 @@ int main() {
         uint32_t now = (uint32_t)k_uptime_seconds();
         struct ts_msg_lora_outgoing out_msg = {
             .type = TS_MSG_NODE_STATUS,
-            .data.node_status = {.timestamp = now,
-                                 .uptime = now,
-                                 .status = OK},
+            .data.node_status = {.timestamp = now, .uptime = now, .status = OK},
         };
         ts_routing_prepare_header(&out_msg.route, TS_ROUTING_BROADCAST_ADDR);
         LOG_DBG("Notifying mesh of node status: uptime=%d, status=%d",

@@ -42,7 +42,7 @@ int ts_auth_init(void);
  *
  * @return Pointer to TS_AUTH_KEY_SIZE bytes of key material
  */
-const uint8_t *ts_auth_get_key(void);
+const uint8_t* ts_auth_get_key(void);
 
 /**
  * @brief Get the active key identifier.
@@ -63,7 +63,7 @@ uint8_t ts_auth_get_key_id(void);
  * @return 0 on success, -EINVAL if p_data is NULL and data_len > 0,
  *         -EIO on crypto failure
  */
-int ts_auth_sign(const uint8_t *p_data, size_t data_len, uint8_t *p_tag);
+int ts_auth_sign(const uint8_t* p_data, size_t data_len, uint8_t* p_tag);
 
 /**
  * @brief Verify AES-128-CMAC tag over a buffer.
@@ -77,8 +77,8 @@ int ts_auth_sign(const uint8_t *p_data, size_t data_len, uint8_t *p_tag);
  * @return 0 if tag is valid, -EINVAL if p_data is NULL and data_len > 0,
  *         -EACCES if tag does not match, -EIO on crypto failure
  */
-int ts_auth_verify(const uint8_t *p_data, size_t data_len,
-                   const uint8_t *p_tag);
+int ts_auth_verify(const uint8_t* p_data, size_t data_len,
+                   const uint8_t* p_tag);
 
 /** @} */
 

@@ -8,11 +8,11 @@
  * on nRF52840 CryptoCell or ESP32 eFuse without changing call sites.
  */
 
-#include <zephyr/kernel.h>
-#include <psa/crypto.h>
-#include <string.h>
 #include "lora/auth.h"
 
+#include <psa/crypto.h>
+#include <string.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(ts_auth);
 
@@ -22,20 +22,14 @@ static uint8_t network_key[TS_AUTH_KEY_SIZE];
 static psa_key_id_t auth_key_id;
 
 static int hex_char_to_nibble(char c) {
-    if (c >= '0' && c <= '9') {
-        return c - '0';
-    }
-    if (c >= 'a' && c <= 'f') {
-        return c - 'a' + 10;
-    }
-    if (c >= 'A' && c <= 'F') {
-        return c - 'A' + 10;
-    }
+    if (c >= '0' && c <= '9') { return c - '0'; }
+    if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
+    if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
     return -1;
 }
 
 int ts_auth_init(void) {
-    const char *hex = CONFIG_TS_NETWORK_KEY;
+    const char* hex = CONFIG_TS_NETWORK_KEY;
     size_t hex_len = strlen(hex);
 
     if (hex_len != TS_AUTH_KEY_SIZE * 2) {
@@ -81,18 +75,12 @@ int ts_auth_init(void) {
     return 0;
 }
 
-const uint8_t *ts_auth_get_key(void) {
-    return network_key;
-}
+const uint8_t* ts_auth_get_key(void) { return network_key; }
 
-uint8_t ts_auth_get_key_id(void) {
-    return (uint8_t)CONFIG_TS_KEY_ID;
-}
+uint8_t ts_auth_get_key_id(void) { return (uint8_t)CONFIG_TS_KEY_ID; }
 
-int ts_auth_sign(const uint8_t *p_data, size_t data_len, uint8_t *p_tag) {
-    if (p_data == NULL && data_len > 0) {
-        return -EINVAL;
-    }
+int ts_auth_sign(const uint8_t* p_data, size_t data_len, uint8_t* p_tag) {
+    if (p_data == NULL && data_len > 0) { return -EINVAL; }
 
     // Compute full 16-byte CMAC, then truncate to TS_AUTH_TAG_SIZE.
     // We truncate manually rather than using PSA_ALG_TRUNCATED_MAC
@@ -105,8 +93,7 @@ int ts_auth_sign(const uint8_t *p_data, size_t data_len, uint8_t *p_tag) {
     static const uint8_t empty;
 
     psa_status_t status = psa_mac_compute(
-        auth_key_id, PSA_ALG_CMAC,
-        (p_data != NULL) ? p_data : &empty, data_len,
+        auth_key_id, PSA_ALG_CMAC, (p_data != NULL) ? p_data : &empty, data_len,
         full_mac, sizeof(full_mac), &mac_len);
     if (status != PSA_SUCCESS) {
         LOG_ERR("CMAC compute failed: %d", status);
@@ -120,20 +107,16 @@ int ts_auth_sign(const uint8_t *p_data, size_t data_len, uint8_t *p_tag) {
     return 0;
 }
 
-int ts_auth_verify(const uint8_t *p_data, size_t data_len,
-                   const uint8_t *p_tag) {
-    if (p_data == NULL && data_len > 0) {
-        return -EINVAL;
-    }
+int ts_auth_verify(const uint8_t* p_data, size_t data_len,
+                   const uint8_t* p_tag) {
+    if (p_data == NULL && data_len > 0) { return -EINVAL; }
 
     // Recompute rather than using psa_mac_verify because PSA verify
     // expects a full-length tag, but we store only TS_AUTH_TAG_SIZE bytes.
     uint8_t computed_tag[TS_AUTH_TAG_SIZE];
 
     int ret = ts_auth_sign(p_data, data_len, computed_tag);
-    if (ret != 0) {
-        return ret;
-    }
+    if (ret != 0) { return ret; }
 
     // XOR-accumulate prevents early-exit timing leaks that would let
     // an attacker determine how many leading tag bytes are correct.

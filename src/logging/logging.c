@@ -1,4 +1,5 @@
 #include "logging.h"
+
 #include <errno.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(terrascope);

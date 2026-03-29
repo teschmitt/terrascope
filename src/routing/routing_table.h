@@ -55,8 +55,7 @@ int ts_routing_table_update(uint16_t node_id, int16_t rssi, int8_t snr,
  * @param p_neighbor  Output neighbor struct
  * @return 0 if found, -ENOENT if not in table
  */
-int ts_routing_table_lookup(uint16_t node_id,
-                            struct ts_neighbor *p_neighbor);
+int ts_routing_table_lookup(uint16_t node_id, struct ts_neighbor* p_neighbor);
 
 /**
  * @brief Remove entries older than a given threshold.
