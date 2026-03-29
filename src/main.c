@@ -4,7 +4,6 @@
 
 #include "logging/logging.h"
 #include "lora/auth.h"
-#include "lora/lora.h"
 #include "messages/messages.h"
 #include "routing/routing.h"
 #include "routing/routing_table.h"
