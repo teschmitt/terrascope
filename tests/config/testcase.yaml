@@ -1,0 +1,4 @@
+tests:
+  terrascope.config:
+    tags: config settings
+    platform_allow: qemu_riscv64

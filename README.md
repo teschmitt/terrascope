@@ -11,7 +11,7 @@ This project creates a scalable, low-power mesh of sensor nodes that collect env
 - 🌡 **Sensor Support** -- BME280 environmental sensor (temperature, humidity, pressure) on RAK4631; mock data on QEMU
 - 🛠 **Modular Architecture** -- Zephyr Zbus message bus with clear separation of sensor, LoRa, routing, and message modules
 - 🔒 **Network Security** -- AES-128-CMAC message authentication (PSA Crypto API), per-deployment network key, key rotation via `key_id`
-- 🧪 **Testable** -- 55 unit tests across CBOR, routing, contention, neighbor table, and auth modules; mock LoRa driver with loopback for full pipeline testing in QEMU
+- 🧪 **Testable** -- 63 unit tests across CBOR, routing, contention, neighbor table, auth, and config modules; mock LoRa driver with loopback for full pipeline testing in QEMU
 - 🔄 **CI/CD** -- GitHub Actions matrix build for all targets plus unit tests via `west twister`
 
 ## Supported Hardware
@@ -121,6 +121,7 @@ Defined in `src/messages/messages.h` as a tagged union (`ts_msg_lora_outgoing`).
 | Sensors          | `src/sensors/`            | Sensor backend abstraction; BME280 on RAK4631, mock on QEMU                   |
 | Messages         | `src/messages/`           | Shared message type definitions (including route header)                      |
 | Logging          | `src/logging/`            | Zbus publish error logging helper                                             |
+| Config           | `src/config/`             | Runtime configuration schema, NVS persistence, defaults                       |
 | Mock LoRa driver | `src/drivers/lora_mock.c` | Loopback simulation driver for QEMU (`CONFIG_LORA_MOCK=y`)                    |
 
 ### Board Configuration
@@ -144,6 +145,7 @@ terrascope/
 │   ├── routing/                Node addressing, duplicate detection, neighbor table
 │   ├── messages/               Message type definitions (with route header)
 │   ├── sensors/                Sensor backend abstraction (BME280 or mock)
+│   ├── config/                 Runtime configuration schema and persistence
 │   ├── logging/                Zbus error logging helper
 │   └── main.c                  Entry point, zbus channels, routing init
 ├── tests/
@@ -151,7 +153,8 @@ terrascope/
 │   ├── cbor/                   CBOR serialization tests (9 tests)
 │   ├── routing/                Routing logic tests (15 tests)
 │   ├── contention/             Contention forwarding tests (11 tests)
-│   └── routing_table/          Neighbor table tests (13 tests)
+│   ├── routing_table/          Neighbor table tests (13 tests)
+│   └── config/                 Config module tests (8 tests)
 ├── prj.conf                    Common Kconfig
 ├── CMakeLists.txt              Build configuration
 ├── Kconfig                     Application Kconfig root

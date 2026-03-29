@@ -60,6 +60,7 @@ Defined in `src/messages/messages.h` — a tagged union (`ts_msg_lora_outgoing`)
 | Sensors | `src/sensors/` | BME280 on RAK4631 via Zephyr sensor API; mock random data on QEMU. Conditional on `DT_HAS_COMPAT_STATUS_OKAY(bosch_bme280)` |
 | Messages | `src/messages/` | Shared message type definitions |
 | Logging | `src/logging/` | Zbus publish error logging helper |
+| Config | `src/config/` | Runtime configuration schema, NVS persistence, compile-time defaults |
 | Mock LoRa driver | `src/drivers/lora_mock.c` + `drivers/lora/` | Simulation driver, enabled via `CONFIG_LORA_MOCK=y` |
 
 ### Board Configuration
