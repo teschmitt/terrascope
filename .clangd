@@ -1,0 +1,4 @@
+CompileFlags:
+  Remove:
+    - -fno-printf-return-value
+    - -fno-reorder-functions
