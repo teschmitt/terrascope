@@ -1,5 +1,7 @@
 #include "lora.h"
 
+#include <string.h>
+
 #include "config/config.h"
 #include "lora/auth.h"
 #include "lora/contention.h"
@@ -223,11 +225,47 @@ int lora_in_task() {
 
         // Deliver locally if addressed to this node or broadcast
         if (ts_routing_is_for_us(&in_msg.msg.route)) {
+            // Handle config set: apply and send ack back to sender
+            if (in_msg.msg.type == TS_MSG_CONFIG_SET) {
+                int cfg_ret = ts_config_set(
+                    in_msg.msg.data.config_set.key,
+                    in_msg.msg.data.config_set.value);
+                LOG_INF("Config set '%s'=%d result=%d",
+                        in_msg.msg.data.config_set.key,
+                        in_msg.msg.data.config_set.value, cfg_ret);
+
+                struct ts_msg_lora_outgoing ack = {
+                    .type = TS_MSG_CONFIG_ACK,
+                    .data.config_ack = {
+                        .value = in_msg.msg.data.config_set.value,
+                        .result = cfg_ret,
+                    },
+                };
+                strncpy(ack.data.config_ack.key,
+                        in_msg.msg.data.config_set.key,
+                        TS_MSG_CONFIG_KEY_MAX - 1);
+                ts_routing_prepare_header(&ack.route,
+                                          in_msg.msg.route.src);
+
+                ret = zbus_chan_pub(&ts_lora_out_chan, &ack,
+                                   LORA_CHAN_IN_PUB_TIMEOUT);
+                if (ret != 0) {
+                    LOG_ERR("Failed to publish config ack: %d", ret);
+                }
+                continue;
+            }
+
             ret = zbus_chan_pub(&ts_lora_in_chan, &in_msg,
                                 LORA_CHAN_IN_PUB_TIMEOUT);
             if (ret != 0) {
                 LOG_ERR("Failed to publish incoming message: %d", ret);
             }
+        }
+
+        // Config messages are point-to-point, not flooded
+        if (in_msg.msg.type == TS_MSG_CONFIG_SET ||
+            in_msg.msg.type == TS_MSG_CONFIG_ACK) {
+            continue;
         }
 
         // Contention-based rebroadcast: delay based on RSSI
