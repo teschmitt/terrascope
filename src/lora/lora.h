@@ -20,10 +20,9 @@
 /**
  * @brief Populate a LoRa modem config with the project's radio parameters.
  *
- * @param config  Output modem config struct
- * @return true on success
+ * @param config  Output modem config struct to populate
  */
-bool lora_config_ready_device(struct lora_modem_config* config);
+void lora_populate_modem_config(struct lora_modem_config* config);
 
 /**
  * @brief LoRa transmit task entry point.

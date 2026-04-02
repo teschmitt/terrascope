@@ -49,19 +49,20 @@ static int lora_init(void) {
 
     // Configure the device
     struct lora_modem_config config;
-    lora_config_ready_device(&config);
+    lora_populate_modem_config(&config);
 
     if (lora_config(lora_dev, &config) < 0) {
         LOG_ERR("LoRa config failed");
         return -EIO;
     }
 
+    k_sem_give(&lora_ready_sem);
     return 0;
 }
 
 SYS_INIT(lora_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
-bool lora_config_ready_device(struct lora_modem_config* config) {
+void lora_populate_modem_config(struct lora_modem_config* config) {
     const struct ts_config* cfg = ts_config_get();
     config->frequency = cfg->lora_frequency;
     config->bandwidth = (enum lora_signal_bandwidth)cfg->lora_bw;
@@ -71,8 +72,6 @@ bool lora_config_ready_device(struct lora_modem_config* config) {
     config->public_network = false;
     config->tx_power = cfg->lora_tx_power;
     config->tx = true;
-    k_sem_give(&lora_ready_sem);
-    return true;
 }
 
 int lora_out_task() {
