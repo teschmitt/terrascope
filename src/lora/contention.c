@@ -1,8 +1,11 @@
 #include "lora/contention.h"
 
 #include <errno.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/zbus/zbus.h>
+
+#include "config/config.h"
+
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(contention);
 
@@ -84,16 +87,18 @@ void ts_contention_init(void) {
 }
 
 uint32_t ts_contention_rssi_to_delay_ms(int16_t rssi) {
-    if (rssi <= TS_CONTENTION_RSSI_WEAK) {
-        return TS_CONTENTION_DELAY_MIN_MS;
-    } else if (rssi >= TS_CONTENTION_RSSI_STRONG) {
-        return TS_CONTENTION_DELAY_MAX_MS;
+    const struct ts_config *cfg = ts_config_get();
+
+    if (rssi <= cfg->contention_rssi_weak) {
+        return cfg->contention_delay_min_ms;
+    } else if (rssi >= cfg->contention_rssi_strong) {
+        return cfg->contention_delay_max_ms;
     }
 
-    int32_t offset = (int32_t)rssi - TS_CONTENTION_RSSI_WEAK;
-    int32_t range = TS_CONTENTION_RSSI_STRONG - TS_CONTENTION_RSSI_WEAK;
+    int32_t offset = (int32_t)rssi - cfg->contention_rssi_weak;
+    int32_t range = cfg->contention_rssi_strong - cfg->contention_rssi_weak;
 
-    return (uint32_t)((offset * TS_CONTENTION_DELAY_MAX_MS) / range);
+    return (uint32_t)((offset * cfg->contention_delay_max_ms) / range);
 }
 
 int ts_contention_schedule(const struct ts_msg_lora_outgoing* p_msg,

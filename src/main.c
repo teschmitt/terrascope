@@ -2,6 +2,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/zbus/zbus.h>
 
+#include "config/config.h"
 #include "logging/logging.h"
 #include "lora/auth.h"
 #include "messages/messages.h"
@@ -10,13 +11,8 @@
 #include "sensors/sensor_manager.h"
 #include "version.h"
 
-#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
-
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(terrascope);
-
-// TODO: derive from hardware unique ID or Kconfig
-#define TS_NODE_ID 0x0001
 
 #define ZBUS_SEND_TIMEOUT K_MSEC(200)
 
@@ -37,7 +33,8 @@ K_TIMER_DEFINE(sensor_periodic_timer, sensor_periodic_timer_handler, NULL);
 
 // Periodic routing table aging
 static void routing_table_age_handler(struct k_work* work) {
-    ts_routing_table_age_seconds(TS_ROUTING_TABLE_STALE_TIMEOUT_S);
+    ts_routing_table_age_seconds(
+        ts_config_get()->routing_table_stale_timeout_s);
 }
 K_WORK_DEFINE(routing_table_age_work, routing_table_age_handler);
 static void routing_table_age_timer_handler(struct k_timer* dummy) {
@@ -55,15 +52,25 @@ int main() {
         return auth_ret;
     }
 
-    ts_routing_init(TS_NODE_ID);
+    int cfg_ret = ts_config_init();
+    if (cfg_ret != 0) {
+        LOG_ERR("Failed to initialize config module: %d", cfg_ret);
+        return cfg_ret;
+    }
+
+    ts_routing_init(ts_config_get()->node_id);
     ts_routing_table_init();
     LOG_INF("Node ID: 0x%04x", ts_routing_get_node_id());
 
-    k_timer_start(&sensor_periodic_timer, K_SECONDS(1), K_SECONDS(10));
-    k_timer_start(&routing_table_age_timer, K_SECONDS(60), K_SECONDS(60));
+    const struct ts_config* cfg = ts_config_get();
+    k_timer_start(&sensor_periodic_timer, K_SECONDS(1),
+                  K_SECONDS(cfg->sensor_interval_s));
+    k_timer_start(&routing_table_age_timer,
+                  K_SECONDS(cfg->routing_table_age_interval_s),
+                  K_SECONDS(cfg->routing_table_age_interval_s));
 
     while (true) {
-        k_sleep(K_SECONDS(7));
+        k_sleep(K_SECONDS(cfg->heartbeat_interval_s));
         uint32_t now = (uint32_t)k_uptime_seconds();
         struct ts_msg_lora_outgoing out_msg = {
             .type = TS_MSG_NODE_STATUS,

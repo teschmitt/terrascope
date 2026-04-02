@@ -3,9 +3,11 @@
 #include <errno.h>
 #include <string.h>
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
 
+#include "config/config.h"
 #include "routing/routing.h"
+
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(routing_table);
 
@@ -54,7 +56,7 @@ void ts_routing_table_init(void) {
 int ts_routing_table_update(uint16_t node_id, int16_t rssi, int8_t snr,
                             uint8_t ttl) {
     uint32_t now = (uint32_t)k_uptime_seconds();
-    bool is_direct = (ttl == TS_ROUTING_DEFAULT_TTL);
+    bool is_direct = (ttl == ts_config_get()->routing_ttl);
 
     k_mutex_lock(&table_mutex, K_FOREVER);
 

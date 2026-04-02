@@ -1,11 +1,12 @@
 #include "lora.h"
 
-#include <zephyr/logging/log.h>
-
+#include "config/config.h"
 #include "lora/auth.h"
 #include "lora/contention.h"
 #include "routing/routing.h"
 #include "routing/routing_table.h"
+
+#include <zephyr/logging/log.h>
 
 #define LORA_CHAN_OUT_READ_TIMEOUT K_MSEC(1)
 #define LORA_RECV_TIMEOUT K_MSEC(1000)
@@ -59,13 +60,14 @@ static int lora_init(void) {
 SYS_INIT(lora_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
 bool lora_config_ready_device(struct lora_modem_config* config) {
-    config->frequency = 865100000;
-    config->bandwidth = BW_125_KHZ;
-    config->datarate = SF_10;
-    config->coding_rate = CR_4_5;
+    const struct ts_config* cfg = ts_config_get();
+    config->frequency = cfg->lora_frequency;
+    config->bandwidth = (enum lora_signal_bandwidth)cfg->lora_bw;
+    config->datarate = (enum lora_datarate)cfg->lora_sf;
+    config->coding_rate = (enum lora_coding_rate)cfg->lora_cr;
     config->iq_inverted = false;
     config->public_network = false;
-    config->tx_power = 4;
+    config->tx_power = cfg->lora_tx_power;
     config->tx = true;
     k_sem_give(&lora_ready_sem);
     return true;

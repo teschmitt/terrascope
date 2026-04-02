@@ -2,8 +2,11 @@
 
 #include <errno.h>
 #include <string.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
+
+#include "config/config.h"
+
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(routing);
 
@@ -34,7 +37,7 @@ void ts_routing_prepare_header(struct ts_route_header* p_hdr, uint16_t dst) {
     p_hdr->src = self_node_id;
     p_hdr->dst = dst;
     p_hdr->msg_id = (uint32_t)atomic_inc(&next_msg_id);
-    p_hdr->ttl = TS_ROUTING_DEFAULT_TTL;
+    p_hdr->ttl = ts_config_get()->routing_ttl;
 }
 
 int ts_routing_decrement_ttl(struct ts_route_header* p_hdr) {
