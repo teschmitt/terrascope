@@ -6,6 +6,7 @@ target_sources(app PRIVATE
     src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/lora/contention.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/routing/routing.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/config/config.c
 )
 
 target_include_directories(app PRIVATE
