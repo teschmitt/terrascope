@@ -1,8 +1,10 @@
 #include "lora/cbor.h"
 
 #include <errno.h>
+#include <string.h>
 #include <zcbor_decode.h>
 #include <zcbor_encode.h>
+
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(cbor);
@@ -91,6 +93,36 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
             }
             break;
 
+        case TS_MSG_CONFIG_SET:
+            if (!zcbor_map_start_encode(enc_state, 2) ||
+                !zcbor_tstr_put_lit(enc_state, "key") ||
+                !zcbor_tstr_put_term(enc_state, msg->data.config_set.key,
+                                     TS_MSG_CONFIG_KEY_MAX) ||
+                !zcbor_tstr_put_lit(enc_state, "value") ||
+                !zcbor_int32_put(enc_state, msg->data.config_set.value) ||
+                !zcbor_map_end_encode(enc_state, 2)) {
+                ret = zcbor_peek_error(enc_state);
+                LOG_ERR("Failed to encode config_set data, error: %d", ret);
+                return -ENOMEM;
+            }
+            break;
+
+        case TS_MSG_CONFIG_ACK:
+            if (!zcbor_map_start_encode(enc_state, 3) ||
+                !zcbor_tstr_put_lit(enc_state, "key") ||
+                !zcbor_tstr_put_term(enc_state, msg->data.config_ack.key,
+                                     TS_MSG_CONFIG_KEY_MAX) ||
+                !zcbor_tstr_put_lit(enc_state, "value") ||
+                !zcbor_int32_put(enc_state, msg->data.config_ack.value) ||
+                !zcbor_tstr_put_lit(enc_state, "result") ||
+                !zcbor_int32_put(enc_state, msg->data.config_ack.result) ||
+                !zcbor_map_end_encode(enc_state, 3)) {
+                ret = zcbor_peek_error(enc_state);
+                LOG_ERR("Failed to encode config_ack data, error: %d", ret);
+                return -ENOMEM;
+            }
+            break;
+
         default:
             LOG_ERR("Unknown message type: %d", msg->type);
             return -EINVAL;
@@ -169,6 +201,46 @@ static int deserialize_node_status(zcbor_state_t* state,
     return 0;
 }
 
+static int deserialize_config_set(zcbor_state_t* state,
+                                  struct ts_msg_config_set* p_cfg) {
+    struct zcbor_string key_str;
+
+    if (!zcbor_map_start_decode(state) ||
+        !zcbor_tstr_expect_lit(state, "key") ||
+        !zcbor_tstr_decode(state, &key_str) ||
+        !zcbor_tstr_expect_lit(state, "value") ||
+        !zcbor_int32_decode(state, &p_cfg->value) ||
+        !zcbor_map_end_decode(state)) {
+        return -EBADMSG;
+    }
+
+    if (key_str.len >= TS_MSG_CONFIG_KEY_MAX) { return -EBADMSG; }
+    memcpy(p_cfg->key, key_str.value, key_str.len);
+    p_cfg->key[key_str.len] = '\0';
+    return 0;
+}
+
+static int deserialize_config_ack(zcbor_state_t* state,
+                                  struct ts_msg_config_ack* p_ack) {
+    struct zcbor_string key_str;
+
+    if (!zcbor_map_start_decode(state) ||
+        !zcbor_tstr_expect_lit(state, "key") ||
+        !zcbor_tstr_decode(state, &key_str) ||
+        !zcbor_tstr_expect_lit(state, "value") ||
+        !zcbor_int32_decode(state, &p_ack->value) ||
+        !zcbor_tstr_expect_lit(state, "result") ||
+        !zcbor_int32_decode(state, &p_ack->result) ||
+        !zcbor_map_end_decode(state)) {
+        return -EBADMSG;
+    }
+
+    if (key_str.len >= TS_MSG_CONFIG_KEY_MAX) { return -EBADMSG; }
+    memcpy(p_ack->key, key_str.value, key_str.len);
+    p_ack->key[key_str.len] = '\0';
+    return 0;
+}
+
 int cbor_deserialize(const uint8_t* p_buf, size_t buf_len,
                      struct ts_msg_lora_outgoing* p_msg) {
     if (p_buf == NULL || buf_len == 0) { return -EINVAL; }
@@ -211,6 +283,22 @@ int cbor_deserialize(const uint8_t* p_buf, size_t buf_len,
             ret = deserialize_node_status(dec_state, &p_msg->data.node_status);
             if (ret != 0) {
                 LOG_ERR("Failed to decode node_status data");
+                return ret;
+            }
+            break;
+
+        case TS_MSG_CONFIG_SET:
+            ret = deserialize_config_set(dec_state, &p_msg->data.config_set);
+            if (ret != 0) {
+                LOG_ERR("Failed to decode config_set data");
+                return ret;
+            }
+            break;
+
+        case TS_MSG_CONFIG_ACK:
+            ret = deserialize_config_ack(dec_state, &p_msg->data.config_ack);
+            if (ret != 0) {
+                LOG_ERR("Failed to decode config_ack data");
                 return ret;
             }
             break;
