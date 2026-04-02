@@ -169,15 +169,15 @@ terrascope/
 The project uses **clang-format** for formatting and **clang-tidy** for static analysis. Both are enforced in CI.
 
 ```bash
-# Check formatting (dry run, exits non-zero on violations)
-find src tests -name '*.c' -o -name '*.h' | xargs clang-format --dry-run --Werror
+# Auto-format all source and test files
+make format
 
-# Auto-format all source files
-find src tests -name '*.c' -o -name '*.h' | xargs clang-format -i
+# Check formatting (dry run, exits non-zero on violations)
+make format-check
 
 # Run clang-tidy (requires a build first for compile_commands.json)
 west build -b qemu_riscv64 -p
-find src -name '*.c' | xargs clang-tidy -p build --extra-arg=-Wno-error=unknown-argument
+make lint
 ```
 
 Configuration files:
