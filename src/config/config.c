@@ -87,6 +87,8 @@ static void write_field(const struct ts_config_key *p_key, int32_t value) {
         case 4:
             *(uint32_t *)(base + p_key->offset) = (uint32_t)value;
             break;
+        default:
+            break;
     }
 }
 

@@ -91,7 +91,8 @@ uint32_t ts_contention_rssi_to_delay_ms(int16_t rssi) {
 
     if (rssi <= cfg->contention_rssi_weak) {
         return cfg->contention_delay_min_ms;
-    } else if (rssi >= cfg->contention_rssi_strong) {
+    }
+    if (rssi >= cfg->contention_rssi_strong) {
         return cfg->contention_delay_max_ms;
     }
 
