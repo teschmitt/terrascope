@@ -1,6 +1,7 @@
 #include "config/config.h"
 
 #include <string.h>
+#include <zephyr/kernel.h>
 #ifdef CONFIG_SETTINGS
 #include <zephyr/settings/settings.h>
 #endif
@@ -8,10 +9,12 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(config);
 
-// Live configuration — starts with compile-time defaults.
-// TODO: add synchronization (atomic pointer swap or mutex) once remote
-// config writes over LoRa mesh land (task 29), since the RX thread
-// could then write concurrently with readers on TX / system workqueue.
+// Mutex: protects live_config against concurrent writes from the RX
+// thread (remote config set) and bulk overwrites in init/reset.
+// Readers via ts_config_get() do not lock — individual field reads
+// are atomic on all target architectures (≤ 32-bit aligned), and
+// callers snapshot the pointer once per operation.
+static K_MUTEX_DEFINE(config_mutex);
 static struct ts_config live_config = TS_CONFIG_DEFAULTS;
 
 // Descriptor for each config key: name, offset, size, and valid range.
@@ -104,6 +107,7 @@ static int config_settings_set(const char *key, size_t len,
         return -EINVAL;
     }
 
+    // Mutex already held by ts_config_init() which calls settings_load()
     uint8_t *base = (uint8_t *)&live_config;
     ssize_t rc = read_cb(cb_arg, base + entry->offset, entry->size);
     if (rc < 0) {
@@ -139,21 +143,25 @@ SETTINGS_STATIC_HANDLER_DEFINE(ts_config, "ts", NULL, config_settings_set,
 #endif /* CONFIG_SETTINGS */
 
 int ts_config_init(void) {
+    k_mutex_lock(&config_mutex, K_FOREVER);
     live_config = (struct ts_config)TS_CONFIG_DEFAULTS;
 
 #ifdef CONFIG_SETTINGS
     int ret = settings_subsys_init();
     if (ret != 0) {
         LOG_ERR("settings_subsys_init failed: %d", ret);
+        k_mutex_unlock(&config_mutex);
         return ret;
     }
 
     ret = settings_load();
     if (ret != 0) {
         LOG_ERR("settings_load failed: %d", ret);
+        k_mutex_unlock(&config_mutex);
         return ret;
     }
 #endif
+    k_mutex_unlock(&config_mutex);
 
     LOG_INF("Config loaded (node_id=0x%04x, ttl=%u, sf=%u)",
             live_config.node_id, live_config.routing_ttl,
@@ -178,6 +186,7 @@ int ts_config_set(const char *p_key, int32_t value) {
         return -EINVAL;
     }
 
+    k_mutex_lock(&config_mutex, K_FOREVER);
     write_field(entry, value);
 
 #ifdef CONFIG_SETTINGS
@@ -188,14 +197,18 @@ int ts_config_set(const char *p_key, int32_t value) {
         settings_save_one(full_name, base + entry->offset, entry->size);
     if (ret != 0) {
         LOG_ERR("settings_save_one(%s) failed: %d", full_name, ret);
+        k_mutex_unlock(&config_mutex);
         return ret;
     }
 #endif
+    k_mutex_unlock(&config_mutex);
 
     return 0;
 }
 
 int ts_config_reset(void) {
+    k_mutex_lock(&config_mutex, K_FOREVER);
+
 #ifdef CONFIG_SETTINGS
     for (size_t i = 0; i < CONFIG_KEY_COUNT; i++) {
         char full_name[32];
@@ -206,5 +219,6 @@ int ts_config_reset(void) {
 #endif
 
     live_config = (struct ts_config)TS_CONFIG_DEFAULTS;
+    k_mutex_unlock(&config_mutex);
     return 0;
 }
