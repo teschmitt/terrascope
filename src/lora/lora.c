@@ -243,6 +243,7 @@ int lora_in_task() {
                 strncpy(ack.data.config_ack.key,
                         in_msg.msg.data.config_set.key,
                         TS_MSG_CONFIG_KEY_MAX - 1);
+                ack.data.config_ack.key[TS_MSG_CONFIG_KEY_MAX - 1] = '\0';
                 ts_routing_prepare_header(&ack.route,
                                           in_msg.msg.route.src);
 
