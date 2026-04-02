@@ -11,6 +11,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: terrascope
+
+      - name: Install clang-tidy
+        run: apt-get update && apt-get install -y clang-tidy
+
+      - name: Cache west modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            bootloader
+            modules
+            tools
+            zephyr
+          key: west-${{ hashFiles('terrascope/west.yml') }}
+          restore-keys: |
+            west-
+
+      - name: Find Zephyr SDK
+        id: sdk
+        run: echo "path=$(find /opt/toolchains -maxdepth 1 -name 'zephyr-sdk-*' -type d | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: West init and update
+        run: |
+          west init -l terrascope
+          west update --narrow --fetch-opt=--depth=1
+
+      - name: Build (for compile_commands.json)
+        working-directory: terrascope
+        env:
+          ZEPHYR_SDK_INSTALL_DIR: ${{ steps.sdk.outputs.path }}
+        run: west build -b qemu_riscv64 -p
+
+      - name: Check formatting
+        working-directory: terrascope
+        run: clang-format --dry-run --Werror src/**/*.c src/**/*.h tests/**/main.c
+
+      - name: Run clang-tidy
+        working-directory: terrascope
+        run: clang-tidy -p build --extra-arg=-Wno-error=unknown-argument --warnings-as-errors='*' src/**/*.c
+
   build:
     runs-on: ubuntu-latest
     container:

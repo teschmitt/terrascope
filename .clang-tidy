@@ -1,0 +1,30 @@
+---
+# clang-tidy configuration for Zephyr embedded C firmware.
+#
+# Run with:
+#   clang-tidy-20 -p build --extra-arg=-Wno-error=unknown-argument src/**/*.c
+#
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  readability-else-after-return,
+  readability-duplicate-include,
+  readability-misleading-indentation,
+  readability-redundant-preprocessor,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-reserved-identifier,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-branch-clone,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: 'src/.*\.h$'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: 'BUILD_ASSERT,__ASSERT'
