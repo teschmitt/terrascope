@@ -1,12 +1,17 @@
 #include "config/config.h"
 
 #include <string.h>
+#ifdef CONFIG_SETTINGS
 #include <zephyr/settings/settings.h>
+#endif
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(config);
 
-// Live configuration — starts with compile-time defaults
+// Live configuration — starts with compile-time defaults.
+// TODO: add synchronization (atomic pointer swap or mutex) once remote
+// config writes over LoRa mesh land (task 29), since the RX thread
+// could then write concurrently with readers on TX / system workqueue.
 static struct ts_config live_config = TS_CONFIG_DEFAULTS;
 
 // Descriptor for each config key: name, offset, size, and valid range.
@@ -82,6 +87,8 @@ static void write_field(const struct ts_config_key *p_key, int32_t value) {
     }
 }
 
+#ifdef CONFIG_SETTINGS
+
 // Settings h_set callback — called by settings_load() for each persisted key
 static int config_settings_set(const char *key, size_t len,
                                settings_read_cb read_cb, void *cb_arg) {
@@ -129,10 +136,12 @@ static int config_settings_export(
 SETTINGS_STATIC_HANDLER_DEFINE(ts_config, "ts", NULL, config_settings_set,
                                NULL, config_settings_export);
 
+#endif /* CONFIG_SETTINGS */
+
 int ts_config_init(void) {
-    // Start with defaults; settings_load will overwrite any persisted values
     live_config = (struct ts_config)TS_CONFIG_DEFAULTS;
 
+#ifdef CONFIG_SETTINGS
     int ret = settings_subsys_init();
     if (ret != 0) {
         LOG_ERR("settings_subsys_init failed: %d", ret);
@@ -144,6 +153,7 @@ int ts_config_init(void) {
         LOG_ERR("settings_load failed: %d", ret);
         return ret;
     }
+#endif
 
     LOG_INF("Config loaded (node_id=0x%04x, ttl=%u, sf=%u)",
             live_config.node_id, live_config.routing_ttl,
@@ -154,7 +164,6 @@ int ts_config_init(void) {
 const struct ts_config *ts_config_get(void) { return &live_config; }
 
 int ts_config_set(const char *p_key, int32_t value) {
-    // Strip "ts/" prefix to find the key entry
     const char *field = p_key;
     if (strncmp(field, "ts/", 3) == 0) {
         field = field + 3;
@@ -171,7 +180,7 @@ int ts_config_set(const char *p_key, int32_t value) {
 
     write_field(entry, value);
 
-    // Persist to NVS using the full "ts/field" key
+#ifdef CONFIG_SETTINGS
     char full_name[32];
     snprintf(full_name, sizeof(full_name), "ts/%s", entry->name);
     const uint8_t *base = (const uint8_t *)&live_config;
@@ -181,20 +190,21 @@ int ts_config_set(const char *p_key, int32_t value) {
         LOG_ERR("settings_save_one(%s) failed: %d", full_name, ret);
         return ret;
     }
+#endif
 
     return 0;
 }
 
 int ts_config_reset(void) {
-    // Delete all persisted keys
+#ifdef CONFIG_SETTINGS
     for (size_t i = 0; i < CONFIG_KEY_COUNT; i++) {
         char full_name[32];
         snprintf(full_name, sizeof(full_name), "ts/%s",
                  config_keys[i].name);
         settings_delete(full_name);
     }
+#endif
 
-    // Restore live struct to compile-time defaults
     live_config = (struct ts_config)TS_CONFIG_DEFAULTS;
     return 0;
 }
