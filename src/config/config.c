@@ -21,20 +21,20 @@ static struct ts_config live_config = TS_CONFIG_DEFAULTS;
 // All range checks use int32_t so signed and unsigned fields share
 // the same validation path.
 struct ts_config_key {
-    const char *name;
+    const char* name;
     uint16_t offset;
     uint8_t size;
     int32_t min;
     int32_t max;
 };
 
-#define CONFIG_KEY(field, lo, hi)                    \
-    {                                                \
-        .name = #field,                              \
-        .offset = offsetof(struct ts_config, field), \
-        .size = sizeof(((struct ts_config *)0)->field), \
-        .min = (lo),                                 \
-        .max = (hi),                                 \
+#define CONFIG_KEY(field, lo, hi)                      \
+    {                                                  \
+        .name = #field,                                \
+        .offset = offsetof(struct ts_config, field),   \
+        .size = sizeof(((struct ts_config*)0)->field), \
+        .min = (lo),                                   \
+        .max = (hi),                                   \
     }
 
 static const struct ts_config_key config_keys[] = {
@@ -57,35 +57,33 @@ static const struct ts_config_key config_keys[] = {
 
 #define CONFIG_KEY_COUNT ARRAY_SIZE(config_keys)
 
-static const struct ts_config_key *find_key(const char *name) {
+static const struct ts_config_key* find_key(const char* name) {
     for (size_t i = 0; i < CONFIG_KEY_COUNT; i++) {
-        if (strcmp(config_keys[i].name, name) == 0) {
-            return &config_keys[i];
-        }
+        if (strcmp(config_keys[i].name, name) == 0) { return &config_keys[i]; }
     }
     return NULL;
 }
 
 // Write an int32_t value into the field at its native size
-static void write_field(const struct ts_config_key *p_key, int32_t value) {
-    uint8_t *base = (uint8_t *)&live_config;
+static void write_field(const struct ts_config_key* p_key, int32_t value) {
+    uint8_t* base = (uint8_t*)&live_config;
     switch (p_key->size) {
         case 1:
             if (p_key->min < 0) {
-                *(int8_t *)(base + p_key->offset) = (int8_t)value;
+                *(int8_t*)(base + p_key->offset) = (int8_t)value;
             } else {
-                *(uint8_t *)(base + p_key->offset) = (uint8_t)value;
+                *(uint8_t*)(base + p_key->offset) = (uint8_t)value;
             }
             break;
         case 2:
             if (p_key->min < 0) {
-                *(int16_t *)(base + p_key->offset) = (int16_t)value;
+                *(int16_t*)(base + p_key->offset) = (int16_t)value;
             } else {
-                *(uint16_t *)(base + p_key->offset) = (uint16_t)value;
+                *(uint16_t*)(base + p_key->offset) = (uint16_t)value;
             }
             break;
         case 4:
-            *(uint32_t *)(base + p_key->offset) = (uint32_t)value;
+            *(uint32_t*)(base + p_key->offset) = (uint32_t)value;
             break;
         default:
             break;
@@ -95,22 +93,22 @@ static void write_field(const struct ts_config_key *p_key, int32_t value) {
 #ifdef CONFIG_SETTINGS
 
 // Settings h_set callback — called by settings_load() for each persisted key
-static int config_settings_set(const char *key, size_t len,
-                               settings_read_cb read_cb, void *cb_arg) {
-    const struct ts_config_key *entry = find_key(key);
+static int config_settings_set(const char* key, size_t len,
+                               settings_read_cb read_cb, void* cb_arg) {
+    const struct ts_config_key* entry = find_key(key);
     if (entry == NULL) {
         LOG_WRN("Unknown settings key: %s", key);
         return -ENOENT;
     }
 
     if (len != entry->size) {
-        LOG_ERR("Size mismatch for %s: expected %u, got %zu", key,
-                entry->size, len);
+        LOG_ERR("Size mismatch for %s: expected %u, got %zu", key, entry->size,
+                len);
         return -EINVAL;
     }
 
     // Mutex already held by ts_config_init() which calls settings_load()
-    uint8_t *base = (uint8_t *)&live_config;
+    uint8_t* base = (uint8_t*)&live_config;
     ssize_t rc = read_cb(cb_arg, base + entry->offset, entry->size);
     if (rc < 0) {
         LOG_ERR("Failed to read setting %s: %zd", key, rc);
@@ -121,26 +119,23 @@ static int config_settings_set(const char *key, size_t len,
 }
 
 // Settings h_export callback — called by settings_save() to persist all keys
-static int config_settings_export(
-    int (*export_func)(const char *name, const void *val, size_t val_len)) {
-    const uint8_t *base = (const uint8_t *)&live_config;
+static int config_settings_export(int (*export_func)(const char* name,
+                                                     const void* val,
+                                                     size_t val_len)) {
+    const uint8_t* base = (const uint8_t*)&live_config;
 
     for (size_t i = 0; i < CONFIG_KEY_COUNT; i++) {
         char full_name[32];
-        snprintf(full_name, sizeof(full_name), "ts/%s",
-                 config_keys[i].name);
-        int ret =
-            export_func(full_name, base + config_keys[i].offset,
-                        config_keys[i].size);
-        if (ret != 0) {
-            return ret;
-        }
+        snprintf(full_name, sizeof(full_name), "ts/%s", config_keys[i].name);
+        int ret = export_func(full_name, base + config_keys[i].offset,
+                              config_keys[i].size);
+        if (ret != 0) { return ret; }
     }
     return 0;
 }
 
-SETTINGS_STATIC_HANDLER_DEFINE(ts_config, "ts", NULL, config_settings_set,
-                               NULL, config_settings_export);
+SETTINGS_STATIC_HANDLER_DEFINE(ts_config, "ts", NULL, config_settings_set, NULL,
+                               config_settings_export);
 
 #endif /* CONFIG_SETTINGS */
 
@@ -166,27 +161,20 @@ int ts_config_init(void) {
     k_mutex_unlock(&config_mutex);
 
     LOG_INF("Config loaded (node_id=0x%04x, ttl=%u, sf=%u)",
-            live_config.node_id, live_config.routing_ttl,
-            live_config.lora_sf);
+            live_config.node_id, live_config.routing_ttl, live_config.lora_sf);
     return 0;
 }
 
-const struct ts_config *ts_config_get(void) { return &live_config; }
+const struct ts_config* ts_config_get(void) { return &live_config; }
 
-int ts_config_set(const char *p_key, int32_t value) {
-    const char *field = p_key;
-    if (strncmp(field, "ts/", 3) == 0) {
-        field = field + 3;
-    }
+int ts_config_set(const char* p_key, int32_t value) {
+    const char* field = p_key;
+    if (strncmp(field, "ts/", 3) == 0) { field = field + 3; }
 
-    const struct ts_config_key *entry = find_key(field);
-    if (entry == NULL) {
-        return -ENOENT;
-    }
+    const struct ts_config_key* entry = find_key(field);
+    if (entry == NULL) { return -ENOENT; }
 
-    if (value < entry->min || value > entry->max) {
-        return -EINVAL;
-    }
+    if (value < entry->min || value > entry->max) { return -EINVAL; }
 
     k_mutex_lock(&config_mutex, K_FOREVER);
     write_field(entry, value);
@@ -194,9 +182,8 @@ int ts_config_set(const char *p_key, int32_t value) {
 #ifdef CONFIG_SETTINGS
     char full_name[32];
     snprintf(full_name, sizeof(full_name), "ts/%s", entry->name);
-    const uint8_t *base = (const uint8_t *)&live_config;
-    int ret =
-        settings_save_one(full_name, base + entry->offset, entry->size);
+    const uint8_t* base = (const uint8_t*)&live_config;
+    int ret = settings_save_one(full_name, base + entry->offset, entry->size);
     if (ret != 0) {
         LOG_ERR("settings_save_one(%s) failed: %d", full_name, ret);
         k_mutex_unlock(&config_mutex);
@@ -214,8 +201,7 @@ int ts_config_reset(void) {
 #ifdef CONFIG_SETTINGS
     for (size_t i = 0; i < CONFIG_KEY_COUNT; i++) {
         char full_name[32];
-        snprintf(full_name, sizeof(full_name), "ts/%s",
-                 config_keys[i].name);
+        snprintf(full_name, sizeof(full_name), "ts/%s", config_keys[i].name);
         settings_delete(full_name);
     }
 #endif

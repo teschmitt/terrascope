@@ -5,21 +5,20 @@
 #include "messages/messages.h"
 #include "routing/routing.h"
 
-#define TEST_ROUTE                                                     \
-    {                                                                  \
-        .src = 0x0001, .dst = TS_ROUTING_BROADCAST_ADDR, .msg_id = 42, \
-        .ttl = TS_ROUTING_DEFAULT_TTL, .key_id = 0                     \
-    }
+#define TEST_ROUTE                     \
+    {.src = 0x0001,                    \
+     .dst = TS_ROUTING_BROADCAST_ADDR, \
+     .msg_id = 42,                     \
+     .ttl = TS_ROUTING_DEFAULT_TTL,    \
+     .key_id = 0}
 
-ZTEST(cbor, test_serialize_telemetry_returns_ok)
-{
-    struct ts_msg_lora_outgoing msg = {
-        .route = TEST_ROUTE,
-        .type = TS_MSG_TELEMETRY,
-        .data.telemetry = {.timestamp = 100,
-                           .temperature = 2500,
-                           .humidity = 6000,
-                           .pressure = 101325}};
+ZTEST(cbor, test_serialize_telemetry_returns_ok) {
+    struct ts_msg_lora_outgoing msg = {.route = TEST_ROUTE,
+                                       .type = TS_MSG_TELEMETRY,
+                                       .data.telemetry = {.timestamp = 100,
+                                                          .temperature = 2500,
+                                                          .humidity = 6000,
+                                                          .pressure = 101325}};
     uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
     size_t size = 0;
 
@@ -29,8 +28,7 @@ ZTEST(cbor, test_serialize_telemetry_returns_ok)
     zassert_true(size > 0, "encoded size should be non-zero");
 }
 
-ZTEST(cbor, test_serialize_node_status_returns_ok)
-{
+ZTEST(cbor, test_serialize_node_status_returns_ok) {
     struct ts_msg_lora_outgoing msg = {
         .route = TEST_ROUTE,
         .type = TS_MSG_NODE_STATUS,
@@ -44,8 +42,7 @@ ZTEST(cbor, test_serialize_node_status_returns_ok)
     zassert_true(size > 0, "encoded size should be non-zero");
 }
 
-ZTEST(cbor, test_serialize_invalid_type_returns_einval)
-{
+ZTEST(cbor, test_serialize_invalid_type_returns_einval) {
     struct ts_msg_lora_outgoing msg = {.route = TEST_ROUTE, .type = 99};
     uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
     size_t size = 0;
@@ -55,15 +52,13 @@ ZTEST(cbor, test_serialize_invalid_type_returns_einval)
     zassert_equal(ret, -EINVAL, "invalid type should return -EINVAL");
 }
 
-ZTEST(cbor, test_serialize_buffer_too_small)
-{
-    struct ts_msg_lora_outgoing msg = {
-        .route = TEST_ROUTE,
-        .type = TS_MSG_TELEMETRY,
-        .data.telemetry = {.timestamp = 100,
-                           .temperature = 2500,
-                           .humidity = 6000,
-                           .pressure = 101325}};
+ZTEST(cbor, test_serialize_buffer_too_small) {
+    struct ts_msg_lora_outgoing msg = {.route = TEST_ROUTE,
+                                       .type = TS_MSG_TELEMETRY,
+                                       .data.telemetry = {.timestamp = 100,
+                                                          .temperature = 2500,
+                                                          .humidity = 6000,
+                                                          .pressure = 101325}};
     uint8_t buf[4];
     size_t size = 0;
 
@@ -74,11 +69,10 @@ ZTEST(cbor, test_serialize_buffer_too_small)
 
 /* Deserialization tests */
 
-ZTEST(cbor, test_roundtrip_telemetry)
-{
+ZTEST(cbor, test_roundtrip_telemetry) {
     struct ts_msg_lora_outgoing original = {
-        .route = {.src = 0x0001, .dst = 0x0002, .msg_id = 99, .ttl = 3,
-                  .key_id = 1},
+        .route =
+            {.src = 0x0001, .dst = 0x0002, .msg_id = 99, .ttl = 3, .key_id = 1},
         .type = TS_MSG_TELEMETRY,
         .data.telemetry = {.timestamp = 1234,
                            .temperature = 2500,
@@ -106,8 +100,7 @@ ZTEST(cbor, test_roundtrip_telemetry)
     zassert_equal(decoded.data.telemetry.pressure, 101325);
 }
 
-ZTEST(cbor, test_roundtrip_telemetry_negative_temp)
-{
+ZTEST(cbor, test_roundtrip_telemetry_negative_temp) {
     struct ts_msg_lora_outgoing original = {
         .route = TEST_ROUTE,
         .type = TS_MSG_TELEMETRY,
@@ -129,8 +122,7 @@ ZTEST(cbor, test_roundtrip_telemetry_negative_temp)
                   "Negative temperature should survive roundtrip");
 }
 
-ZTEST(cbor, test_roundtrip_node_status)
-{
+ZTEST(cbor, test_roundtrip_node_status) {
     struct ts_msg_lora_outgoing original = {
         .route = {.src = 0x0003,
                   .dst = TS_ROUTING_BROADCAST_ADDR,
@@ -161,15 +153,13 @@ ZTEST(cbor, test_roundtrip_node_status)
     zassert_equal(decoded.data.node_status.status, ERROR);
 }
 
-ZTEST(cbor, test_deserialize_truncated_buffer)
-{
-    struct ts_msg_lora_outgoing msg = {
-        .route = TEST_ROUTE,
-        .type = TS_MSG_TELEMETRY,
-        .data.telemetry = {.timestamp = 100,
-                           .temperature = 2500,
-                           .humidity = 6000,
-                           .pressure = 101325}};
+ZTEST(cbor, test_deserialize_truncated_buffer) {
+    struct ts_msg_lora_outgoing msg = {.route = TEST_ROUTE,
+                                       .type = TS_MSG_TELEMETRY,
+                                       .data.telemetry = {.timestamp = 100,
+                                                          .temperature = 2500,
+                                                          .humidity = 6000,
+                                                          .pressure = 101325}};
     uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
     size_t size = 0;
 
@@ -181,8 +171,7 @@ ZTEST(cbor, test_deserialize_truncated_buffer)
     zassert_not_equal(ret, 0, "truncated buffer should fail");
 }
 
-ZTEST(cbor, test_deserialize_empty_buffer)
-{
+ZTEST(cbor, test_deserialize_empty_buffer) {
     struct ts_msg_lora_outgoing decoded = {0};
     int ret = cbor_deserialize(NULL, 0, &decoded);
 
@@ -191,11 +180,10 @@ ZTEST(cbor, test_deserialize_empty_buffer)
 
 /* Config message roundtrips */
 
-ZTEST(cbor, test_roundtrip_config_set)
-{
+ZTEST(cbor, test_roundtrip_config_set) {
     struct ts_msg_lora_outgoing original = {
-        .route = {.src = 0x0001, .dst = 0x0002, .msg_id = 10, .ttl = 5,
-                  .key_id = 0},
+        .route =
+            {.src = 0x0001, .dst = 0x0002, .msg_id = 10, .ttl = 5, .key_id = 0},
         .type = TS_MSG_CONFIG_SET,
     };
     strncpy(original.data.config_set.key, "ts/routing_ttl",
@@ -219,8 +207,7 @@ ZTEST(cbor, test_roundtrip_config_set)
     zassert_equal(decoded.data.config_set.value, 3);
 }
 
-ZTEST(cbor, test_roundtrip_config_set_negative_value)
-{
+ZTEST(cbor, test_roundtrip_config_set_negative_value) {
     struct ts_msg_lora_outgoing original = {
         .route = TEST_ROUTE,
         .type = TS_MSG_CONFIG_SET,
@@ -243,11 +230,10 @@ ZTEST(cbor, test_roundtrip_config_set_negative_value)
                   "Negative value should survive roundtrip");
 }
 
-ZTEST(cbor, test_roundtrip_config_ack)
-{
+ZTEST(cbor, test_roundtrip_config_ack) {
     struct ts_msg_lora_outgoing original = {
-        .route = {.src = 0x0002, .dst = 0x0001, .msg_id = 11, .ttl = 5,
-                  .key_id = 0},
+        .route =
+            {.src = 0x0002, .dst = 0x0001, .msg_id = 11, .ttl = 5, .key_id = 0},
         .type = TS_MSG_CONFIG_ACK,
     };
     strncpy(original.data.config_ack.key, "ts/routing_ttl",
@@ -273,8 +259,7 @@ ZTEST(cbor, test_roundtrip_config_ack)
     zassert_equal(decoded.data.config_ack.result, 0);
 }
 
-ZTEST(cbor, test_roundtrip_config_ack_with_error)
-{
+ZTEST(cbor, test_roundtrip_config_ack_with_error) {
     struct ts_msg_lora_outgoing original = {
         .route = TEST_ROUTE,
         .type = TS_MSG_CONFIG_ACK,

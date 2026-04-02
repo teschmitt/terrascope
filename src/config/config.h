@@ -110,27 +110,25 @@ struct ts_config {
 };
 
 /** @brief Static initializer that fills every field with its default. */
-#define TS_CONFIG_DEFAULTS                                                   \
-    {                                                                        \
-        .routing_ttl = TS_CONFIG_ROUTING_TTL_DEFAULT,                        \
-        .contention_delay_min_ms =                                           \
-            TS_CONFIG_CONTENTION_DELAY_MIN_MS_DEFAULT,                       \
-        .contention_delay_max_ms =                                           \
-            TS_CONFIG_CONTENTION_DELAY_MAX_MS_DEFAULT,                       \
-        .contention_rssi_weak = TS_CONFIG_CONTENTION_RSSI_WEAK_DEFAULT,      \
-        .contention_rssi_strong = TS_CONFIG_CONTENTION_RSSI_STRONG_DEFAULT,  \
-        .routing_table_stale_timeout_s =                                     \
-            TS_CONFIG_ROUTING_TABLE_STALE_TIMEOUT_S_DEFAULT,                 \
-        .node_id = TS_CONFIG_NODE_ID_DEFAULT,                                \
-        .lora_frequency = TS_CONFIG_LORA_FREQUENCY_DEFAULT,                  \
-        .lora_sf = TS_CONFIG_LORA_SF_DEFAULT,                                \
-        .lora_bw = TS_CONFIG_LORA_BW_DEFAULT,                                \
-        .lora_cr = TS_CONFIG_LORA_CR_DEFAULT,                                \
-        .lora_tx_power = TS_CONFIG_LORA_TX_POWER_DEFAULT,                    \
-        .sensor_interval_s = TS_CONFIG_SENSOR_INTERVAL_S_DEFAULT,            \
-        .heartbeat_interval_s = TS_CONFIG_HEARTBEAT_INTERVAL_S_DEFAULT,      \
-        .routing_table_age_interval_s =                                      \
-            TS_CONFIG_ROUTING_TABLE_AGE_INTERVAL_S_DEFAULT,                  \
+#define TS_CONFIG_DEFAULTS                                                    \
+    {                                                                         \
+        .routing_ttl = TS_CONFIG_ROUTING_TTL_DEFAULT,                         \
+        .contention_delay_min_ms = TS_CONFIG_CONTENTION_DELAY_MIN_MS_DEFAULT, \
+        .contention_delay_max_ms = TS_CONFIG_CONTENTION_DELAY_MAX_MS_DEFAULT, \
+        .contention_rssi_weak = TS_CONFIG_CONTENTION_RSSI_WEAK_DEFAULT,       \
+        .contention_rssi_strong = TS_CONFIG_CONTENTION_RSSI_STRONG_DEFAULT,   \
+        .routing_table_stale_timeout_s =                                      \
+            TS_CONFIG_ROUTING_TABLE_STALE_TIMEOUT_S_DEFAULT,                  \
+        .node_id = TS_CONFIG_NODE_ID_DEFAULT,                                 \
+        .lora_frequency = TS_CONFIG_LORA_FREQUENCY_DEFAULT,                   \
+        .lora_sf = TS_CONFIG_LORA_SF_DEFAULT,                                 \
+        .lora_bw = TS_CONFIG_LORA_BW_DEFAULT,                                 \
+        .lora_cr = TS_CONFIG_LORA_CR_DEFAULT,                                 \
+        .lora_tx_power = TS_CONFIG_LORA_TX_POWER_DEFAULT,                     \
+        .sensor_interval_s = TS_CONFIG_SENSOR_INTERVAL_S_DEFAULT,             \
+        .heartbeat_interval_s = TS_CONFIG_HEARTBEAT_INTERVAL_S_DEFAULT,       \
+        .routing_table_age_interval_s =                                       \
+            TS_CONFIG_ROUTING_TABLE_AGE_INTERVAL_S_DEFAULT,                   \
     }
 
 /**

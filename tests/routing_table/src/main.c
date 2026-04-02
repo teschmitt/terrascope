@@ -3,22 +3,19 @@
 #include "routing/routing.h"
 #include "routing/routing_table.h"
 
-static void before_each(void *fixture)
-{
+static void before_each(void* fixture) {
     ARG_UNUSED(fixture);
     ts_routing_table_init();
 }
 
 /* --- Empty table --- */
 
-ZTEST(routing_table, test_empty_table_count_is_zero)
-{
+ZTEST(routing_table, test_empty_table_count_is_zero) {
     zassert_equal(ts_routing_table_count(), 0,
                   "Empty table should have count 0");
 }
 
-ZTEST(routing_table, test_lookup_empty_returns_enoent)
-{
+ZTEST(routing_table, test_lookup_empty_returns_enoent) {
     struct ts_neighbor nb;
     int ret = ts_routing_table_lookup(0x0002, &nb);
     zassert_equal(ret, -ENOENT, "Lookup on empty table should return -ENOENT");
@@ -26,8 +23,7 @@ ZTEST(routing_table, test_lookup_empty_returns_enoent)
 
 /* --- Update and lookup --- */
 
-ZTEST(routing_table, test_update_and_lookup)
-{
+ZTEST(routing_table, test_update_and_lookup) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
 
     struct ts_neighbor nb;
@@ -38,8 +34,7 @@ ZTEST(routing_table, test_update_and_lookup)
     zassert_equal(nb.snr, 8);
 }
 
-ZTEST(routing_table, test_update_same_node_refreshes_rssi)
-{
+ZTEST(routing_table, test_update_same_node_refreshes_rssi) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0002, -90, 3, TS_ROUTING_DEFAULT_TTL);
 
@@ -51,8 +46,7 @@ ZTEST(routing_table, test_update_same_node_refreshes_rssi)
 
 /* --- Direct flag --- */
 
-ZTEST(routing_table, test_direct_flag_full_ttl)
-{
+ZTEST(routing_table, test_direct_flag_full_ttl) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
 
     struct ts_neighbor nb;
@@ -60,8 +54,7 @@ ZTEST(routing_table, test_direct_flag_full_ttl)
     zassert_true(nb.direct, "Full TTL should set direct=true");
 }
 
-ZTEST(routing_table, test_direct_flag_decremented_ttl)
-{
+ZTEST(routing_table, test_direct_flag_decremented_ttl) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL - 1);
 
     struct ts_neighbor nb;
@@ -69,8 +62,7 @@ ZTEST(routing_table, test_direct_flag_decremented_ttl)
     zassert_false(nb.direct, "Decremented TTL should set direct=false");
 }
 
-ZTEST(routing_table, test_direct_flag_not_downgraded)
-{
+ZTEST(routing_table, test_direct_flag_not_downgraded) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0002, -90, 3, TS_ROUTING_DEFAULT_TTL - 1);
 
@@ -82,8 +74,7 @@ ZTEST(routing_table, test_direct_flag_not_downgraded)
 
 /* --- Count --- */
 
-ZTEST(routing_table, test_count_after_inserts)
-{
+ZTEST(routing_table, test_count_after_inserts) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0003, -80, 6, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0004, -90, 3, TS_ROUTING_DEFAULT_TTL);
@@ -93,8 +84,7 @@ ZTEST(routing_table, test_count_after_inserts)
 
 /* --- Eviction --- */
 
-ZTEST(routing_table, test_table_full_evicts_oldest)
-{
+ZTEST(routing_table, test_table_full_evicts_oldest) {
     // Fill table — first entry (node 0x0100) will be the oldest
     for (uint16_t i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
         ts_routing_table_update(0x0100 + i, -75, 8, TS_ROUTING_DEFAULT_TTL);
@@ -109,8 +99,7 @@ ZTEST(routing_table, test_table_full_evicts_oldest)
     zassert_equal(ret, -ENOENT, "Oldest entry should have been evicted");
 }
 
-ZTEST(routing_table, test_table_full_new_entry_present)
-{
+ZTEST(routing_table, test_table_full_new_entry_present) {
     for (uint16_t i = 0; i < TS_ROUTING_TABLE_SIZE; i++) {
         ts_routing_table_update(0x0100 + i, -75, 8, TS_ROUTING_DEFAULT_TTL);
         k_sleep(K_MSEC(10));
@@ -126,8 +115,7 @@ ZTEST(routing_table, test_table_full_new_entry_present)
 
 /* --- Aging --- */
 
-ZTEST(routing_table, test_age_removes_stale)
-{
+ZTEST(routing_table, test_age_removes_stale) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
     k_sleep(K_SECONDS(2));
 
@@ -138,8 +126,7 @@ ZTEST(routing_table, test_age_removes_stale)
     zassert_equal(ret, -ENOENT, "Stale entry should be removed");
 }
 
-ZTEST(routing_table, test_age_keeps_fresh)
-{
+ZTEST(routing_table, test_age_keeps_fresh) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
 
     ts_routing_table_age_seconds(TS_ROUTING_TABLE_STALE_TIMEOUT_S);
@@ -149,8 +136,7 @@ ZTEST(routing_table, test_age_keeps_fresh)
     zassert_ok(ret, "Fresh entry should survive aging");
 }
 
-ZTEST(routing_table, test_age_returns_removal_count)
-{
+ZTEST(routing_table, test_age_returns_removal_count) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0003, -80, 6, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0004, -90, 3, TS_ROUTING_DEFAULT_TTL);
@@ -162,8 +148,7 @@ ZTEST(routing_table, test_age_returns_removal_count)
 
 /* --- Clear --- */
 
-ZTEST(routing_table, test_clear_resets_table)
-{
+ZTEST(routing_table, test_clear_resets_table) {
     ts_routing_table_update(0x0002, -75, 8, TS_ROUTING_DEFAULT_TTL);
     ts_routing_table_update(0x0003, -80, 6, TS_ROUTING_DEFAULT_TTL);
 

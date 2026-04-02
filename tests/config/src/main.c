@@ -2,7 +2,7 @@
 
 #include "config/config.h"
 
-static void before_each(void *fixture) {
+static void before_each(void* fixture) {
     ARG_UNUSED(fixture);
     ts_config_reset();
 }
@@ -13,7 +13,7 @@ ZTEST(config, test_defaults_when_empty) {
     int ret = ts_config_init();
     zassert_ok(ret, "ts_config_init should succeed");
 
-    const struct ts_config *cfg = ts_config_get();
+    const struct ts_config* cfg = ts_config_get();
     zassert_not_null(cfg, "ts_config_get should never return NULL");
 
     zassert_equal(cfg->routing_ttl, TS_CONFIG_ROUTING_TTL_DEFAULT,
@@ -45,8 +45,7 @@ ZTEST(config, test_defaults_when_empty) {
                   "lora_cr should be default");
     zassert_equal(cfg->lora_tx_power, TS_CONFIG_LORA_TX_POWER_DEFAULT,
                   "lora_tx_power should be default");
-    zassert_equal(cfg->sensor_interval_s,
-                  TS_CONFIG_SENSOR_INTERVAL_S_DEFAULT,
+    zassert_equal(cfg->sensor_interval_s, TS_CONFIG_SENSOR_INTERVAL_S_DEFAULT,
                   "sensor_interval_s should be default");
     zassert_equal(cfg->heartbeat_interval_s,
                   TS_CONFIG_HEARTBEAT_INTERVAL_S_DEFAULT,
@@ -62,17 +61,15 @@ ZTEST(config, test_set_value_survives_reinit) {
     int ret = ts_config_set("ts/routing_ttl", 3);
     zassert_ok(ret, "Setting routing_ttl to 3 should succeed");
 
-    const struct ts_config *cfg = ts_config_get();
-    zassert_equal(cfg->routing_ttl, 3,
-                  "routing_ttl should be 3 after set");
+    const struct ts_config* cfg = ts_config_get();
+    zassert_equal(cfg->routing_ttl, 3, "routing_ttl should be 3 after set");
 
     // Re-initialize without erasing — value must survive
     ret = ts_config_init();
     zassert_ok(ret, "ts_config_init should succeed on re-init");
 
     cfg = ts_config_get();
-    zassert_equal(cfg->routing_ttl, 3,
-                  "routing_ttl should survive re-init");
+    zassert_equal(cfg->routing_ttl, 3, "routing_ttl should survive re-init");
 }
 
 /* --- Validation --- */
@@ -80,21 +77,18 @@ ZTEST(config, test_set_value_survives_reinit) {
 ZTEST(config, test_set_out_of_range_returns_einval) {
     // TTL 0 is invalid (messages would be dead on arrival)
     int ret = ts_config_set("ts/routing_ttl", 0);
-    zassert_equal(ret, -EINVAL,
-                  "TTL of 0 should be rejected as out of range");
+    zassert_equal(ret, -EINVAL, "TTL of 0 should be rejected as out of range");
 
     // Spreading factor must be 5–12
     ret = ts_config_set("ts/lora_sf", 20);
-    zassert_equal(ret, -EINVAL,
-                  "SF of 20 should be rejected as out of range");
+    zassert_equal(ret, -EINVAL, "SF of 20 should be rejected as out of range");
 
     // Coding rate must be 1–4
     ret = ts_config_set("ts/lora_cr", 0);
-    zassert_equal(ret, -EINVAL,
-                  "CR of 0 should be rejected as out of range");
+    zassert_equal(ret, -EINVAL, "CR of 0 should be rejected as out of range");
 
     // Verify the struct was not modified by invalid sets
-    const struct ts_config *cfg = ts_config_get();
+    const struct ts_config* cfg = ts_config_get();
     zassert_equal(cfg->routing_ttl, TS_CONFIG_ROUTING_TTL_DEFAULT,
                   "routing_ttl should be unchanged after invalid set");
     zassert_equal(cfg->lora_sf, TS_CONFIG_LORA_SF_DEFAULT,
@@ -170,11 +164,9 @@ ZTEST(config, test_multiple_keys_survive_reinit) {
     ret = ts_config_init();
     zassert_ok(ret);
 
-    const struct ts_config *cfg = ts_config_get();
-    zassert_equal(cfg->routing_ttl, 8,
-                  "routing_ttl should survive re-init");
-    zassert_equal(cfg->lora_sf, 7,
-                  "lora_sf should survive re-init");
+    const struct ts_config* cfg = ts_config_get();
+    zassert_equal(cfg->routing_ttl, 8, "routing_ttl should survive re-init");
+    zassert_equal(cfg->lora_sf, 7, "lora_sf should survive re-init");
     zassert_equal(cfg->heartbeat_interval_s, 15,
                   "heartbeat_interval_s should survive re-init");
 }
@@ -183,8 +175,7 @@ ZTEST(config, test_multiple_keys_survive_reinit) {
 
 ZTEST(config, test_set_unknown_key_returns_enoent) {
     int ret = ts_config_set("ts/nonexistent", 42);
-    zassert_equal(ret, -ENOENT,
-                  "Unknown key should return -ENOENT");
+    zassert_equal(ret, -ENOENT, "Unknown key should return -ENOENT");
 }
 
 /* --- Reset --- */
@@ -199,7 +190,7 @@ ZTEST(config, test_reset_restores_defaults) {
     zassert_ok(ret, "Setting sensor_interval_s should succeed");
 
     // Verify they changed
-    const struct ts_config *cfg = ts_config_get();
+    const struct ts_config* cfg = ts_config_get();
     zassert_equal(cfg->routing_ttl, 3);
     zassert_equal(cfg->lora_sf, 12);
     zassert_equal(cfg->sensor_interval_s, 30);
@@ -214,8 +205,7 @@ ZTEST(config, test_reset_restores_defaults) {
                   "routing_ttl should be default after reset");
     zassert_equal(cfg->lora_sf, TS_CONFIG_LORA_SF_DEFAULT,
                   "lora_sf should be default after reset");
-    zassert_equal(cfg->sensor_interval_s,
-                  TS_CONFIG_SENSOR_INTERVAL_S_DEFAULT,
+    zassert_equal(cfg->sensor_interval_s, TS_CONFIG_SENSOR_INTERVAL_S_DEFAULT,
                   "sensor_interval_s should be default after reset");
 }
 

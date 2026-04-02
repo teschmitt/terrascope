@@ -1,5 +1,6 @@
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/zbus/zbus.h>
 
 #include "config/config.h"
@@ -10,8 +11,6 @@
 #include "routing/routing_table.h"
 #include "sensors/sensor_manager.h"
 #include "version.h"
-
-#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(terrascope);
 
 #define ZBUS_SEND_TIMEOUT K_MSEC(200)

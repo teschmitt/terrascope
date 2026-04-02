@@ -1,11 +1,10 @@
 #include "lora/contention.h"
 
 #include <errno.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/zbus/zbus.h>
 
 #include "config/config.h"
-
-#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(contention);
 
@@ -87,7 +86,7 @@ void ts_contention_init(void) {
 }
 
 uint32_t ts_contention_rssi_to_delay_ms(int16_t rssi) {
-    const struct ts_config *cfg = ts_config_get();
+    const struct ts_config* cfg = ts_config_get();
 
     if (rssi <= cfg->contention_rssi_weak) {
         return cfg->contention_delay_min_ms;

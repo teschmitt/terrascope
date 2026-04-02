@@ -1,14 +1,13 @@
 #include "lora.h"
 
 #include <string.h>
+#include <zephyr/logging/log.h>
 
 #include "config/config.h"
 #include "lora/auth.h"
 #include "lora/contention.h"
 #include "routing/routing.h"
 #include "routing/routing_table.h"
-
-#include <zephyr/logging/log.h>
 
 #define LORA_CHAN_OUT_READ_TIMEOUT K_MSEC(1)
 #define LORA_RECV_TIMEOUT K_MSEC(1000)
@@ -226,29 +225,27 @@ int lora_in_task() {
         if (ts_routing_is_for_us(&in_msg.msg.route)) {
             // Handle config set: apply and send ack back to sender
             if (in_msg.msg.type == TS_MSG_CONFIG_SET) {
-                int cfg_ret = ts_config_set(
-                    in_msg.msg.data.config_set.key,
-                    in_msg.msg.data.config_set.value);
+                int cfg_ret = ts_config_set(in_msg.msg.data.config_set.key,
+                                            in_msg.msg.data.config_set.value);
                 LOG_INF("Config set '%s'=%d result=%d",
                         in_msg.msg.data.config_set.key,
                         in_msg.msg.data.config_set.value, cfg_ret);
 
                 struct ts_msg_lora_outgoing ack = {
                     .type = TS_MSG_CONFIG_ACK,
-                    .data.config_ack = {
-                        .value = in_msg.msg.data.config_set.value,
-                        .result = cfg_ret,
-                    },
+                    .data.config_ack =
+                        {
+                            .value = in_msg.msg.data.config_set.value,
+                            .result = cfg_ret,
+                        },
                 };
-                strncpy(ack.data.config_ack.key,
-                        in_msg.msg.data.config_set.key,
+                strncpy(ack.data.config_ack.key, in_msg.msg.data.config_set.key,
                         TS_MSG_CONFIG_KEY_MAX - 1);
                 ack.data.config_ack.key[TS_MSG_CONFIG_KEY_MAX - 1] = '\0';
-                ts_routing_prepare_header(&ack.route,
-                                          in_msg.msg.route.src);
+                ts_routing_prepare_header(&ack.route, in_msg.msg.route.src);
 
                 ret = zbus_chan_pub(&ts_lora_out_chan, &ack,
-                                   LORA_CHAN_IN_PUB_TIMEOUT);
+                                    LORA_CHAN_IN_PUB_TIMEOUT);
                 if (ret != 0) {
                     LOG_ERR("Failed to publish config ack: %d", ret);
                 }

@@ -3,11 +3,10 @@
 #include <errno.h>
 #include <string.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 #include "config/config.h"
 #include "routing/routing.h"
-
-#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(routing_table);
 

@@ -4,7 +4,6 @@
 #include <string.h>
 #include <zcbor_decode.h>
 #include <zcbor_encode.h>
-
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(cbor);

@@ -1,12 +1,13 @@
-#include <zephyr/ztest.h>
 #include <string.h>
+#include <zephyr/ztest.h>
+
 #include "lora/auth.h"
 
 #define TEST_PAYLOAD_SIZE 32
 
 static uint8_t test_payload[TEST_PAYLOAD_SIZE];
 
-static void *auth_suite_setup(void) {
+static void* auth_suite_setup(void) {
     // Fill test payload with known pattern
     for (int i = 0; i < TEST_PAYLOAD_SIZE; i++) {
         test_payload[i] = (uint8_t)i;
@@ -16,8 +17,7 @@ static void *auth_suite_setup(void) {
     return NULL;
 }
 
-ZTEST(auth, test_sign_verify_roundtrip)
-{
+ZTEST(auth, test_sign_verify_roundtrip) {
     uint8_t tag[TS_AUTH_TAG_SIZE];
 
     int ret = ts_auth_sign(test_payload, TEST_PAYLOAD_SIZE, tag);
@@ -27,8 +27,7 @@ ZTEST(auth, test_sign_verify_roundtrip)
     zassert_ok(ret, "verify should accept valid tag");
 }
 
-ZTEST(auth, test_tampered_payload_rejected)
-{
+ZTEST(auth, test_tampered_payload_rejected) {
     uint8_t tag[TS_AUTH_TAG_SIZE];
 
     int ret = ts_auth_sign(test_payload, TEST_PAYLOAD_SIZE, tag);
@@ -43,8 +42,7 @@ ZTEST(auth, test_tampered_payload_rejected)
     zassert_equal(ret, -EACCES, "tampered payload should be rejected");
 }
 
-ZTEST(auth, test_tampered_tag_rejected)
-{
+ZTEST(auth, test_tampered_tag_rejected) {
     uint8_t tag[TS_AUTH_TAG_SIZE];
 
     int ret = ts_auth_sign(test_payload, TEST_PAYLOAD_SIZE, tag);
@@ -57,8 +55,7 @@ ZTEST(auth, test_tampered_tag_rejected)
     zassert_equal(ret, -EACCES, "tampered tag should be rejected");
 }
 
-ZTEST(auth, test_truncated_tag_rejected)
-{
+ZTEST(auth, test_truncated_tag_rejected) {
     uint8_t tag[TS_AUTH_TAG_SIZE];
 
     int ret = ts_auth_sign(test_payload, TEST_PAYLOAD_SIZE, tag);
@@ -75,8 +72,7 @@ ZTEST(auth, test_truncated_tag_rejected)
                   "tag with wrong trailing byte should be rejected");
 }
 
-ZTEST(auth, test_zero_length_input)
-{
+ZTEST(auth, test_zero_length_input) {
     uint8_t tag[TS_AUTH_TAG_SIZE];
 
     // Sign with zero-length input should succeed (valid edge case for CMAC)
@@ -88,8 +84,7 @@ ZTEST(auth, test_zero_length_input)
     zassert_ok(ret, "verify with zero-length input should accept valid tag");
 }
 
-ZTEST(auth, test_sign_null_data_nonzero_len_rejected)
-{
+ZTEST(auth, test_sign_null_data_nonzero_len_rejected) {
     uint8_t tag[TS_AUTH_TAG_SIZE];
 
     int ret = ts_auth_sign(NULL, 10, tag);
@@ -97,8 +92,7 @@ ZTEST(auth, test_sign_null_data_nonzero_len_rejected)
                   "NULL data with nonzero length should return -EINVAL");
 }
 
-ZTEST(auth, test_verify_null_data_nonzero_len_rejected)
-{
+ZTEST(auth, test_verify_null_data_nonzero_len_rejected) {
     uint8_t tag[TS_AUTH_TAG_SIZE] = {0};
 
     int ret = ts_auth_verify(NULL, 10, tag);

@@ -2,11 +2,10 @@
 
 #include <errno.h>
 #include <string.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
 
 #include "config/config.h"
-
-#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(routing);
 
