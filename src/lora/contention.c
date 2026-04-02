@@ -98,6 +98,8 @@ uint32_t ts_contention_rssi_to_delay_ms(int16_t rssi) {
     int32_t offset = (int32_t)rssi - cfg->contention_rssi_weak;
     int32_t range = cfg->contention_rssi_strong - cfg->contention_rssi_weak;
 
+    if (range == 0) { return cfg->contention_delay_min_ms; }
+
     return (uint32_t)((offset * cfg->contention_delay_max_ms) / range);
 }
 
