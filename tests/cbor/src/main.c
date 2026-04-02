@@ -106,6 +106,29 @@ ZTEST(cbor, test_roundtrip_telemetry)
     zassert_equal(decoded.data.telemetry.pressure, 101325);
 }
 
+ZTEST(cbor, test_roundtrip_telemetry_negative_temp)
+{
+    struct ts_msg_lora_outgoing original = {
+        .route = TEST_ROUTE,
+        .type = TS_MSG_TELEMETRY,
+        .data.telemetry = {.timestamp = 100,
+                           .temperature = -550,
+                           .humidity = 6000,
+                           .pressure = 101325}};
+    uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
+    size_t size = 0;
+
+    int ret = cbor_serialize(&original, buf, sizeof(buf), &size);
+    zassert_ok(ret);
+
+    struct ts_msg_lora_outgoing decoded = {0};
+    ret = cbor_deserialize(buf, size, &decoded);
+
+    zassert_ok(ret);
+    zassert_equal(decoded.data.telemetry.temperature, -550,
+                  "Negative temperature should survive roundtrip");
+}
+
 ZTEST(cbor, test_roundtrip_node_status)
 {
     struct ts_msg_lora_outgoing original = {

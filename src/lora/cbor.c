@@ -65,7 +65,7 @@ int cbor_serialize(struct ts_msg_lora_outgoing* msg, uint8_t* p_buf,
                 !zcbor_tstr_put_lit(enc_state, "timestamp") ||
                 !zcbor_uint32_put(enc_state, msg->data.telemetry.timestamp) ||
                 !zcbor_tstr_put_lit(enc_state, "temperature") ||
-                !zcbor_uint32_put(enc_state, msg->data.telemetry.temperature) ||
+                !zcbor_int32_put(enc_state, msg->data.telemetry.temperature) ||
                 !zcbor_tstr_put_lit(enc_state, "humidity") ||
                 !zcbor_uint32_put(enc_state, msg->data.telemetry.humidity) ||
                 !zcbor_tstr_put_lit(enc_state, "pressure") ||
@@ -172,7 +172,7 @@ static int deserialize_telemetry(zcbor_state_t* state,
         !zcbor_tstr_expect_lit(state, "timestamp") ||
         !zcbor_uint32_decode(state, &p_tel->timestamp) ||
         !zcbor_tstr_expect_lit(state, "temperature") ||
-        !zcbor_uint32_decode(state, &p_tel->temperature) ||
+        !zcbor_int32_decode(state, &p_tel->temperature) ||
         !zcbor_tstr_expect_lit(state, "humidity") ||
         !zcbor_uint32_decode(state, &p_tel->humidity) ||
         !zcbor_tstr_expect_lit(state, "pressure") ||

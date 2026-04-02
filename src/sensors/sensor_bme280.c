@@ -30,7 +30,7 @@ int ts_sensor_backend_read(struct ts_msg_telemetry* p_tel) {
         LOG_ERR("BME280 temperature read failed: %d", ret);
         return ret;
     }
-    p_tel->temperature = (uint32_t)(val.val1 * 100 + val.val2 / 10000);
+    p_tel->temperature = (int32_t)(val.val1 * 100 + val.val2 / 10000);
 
     // Humidity in centi-percent RH (e.g. 6543 = 65.43 %RH)
     ret = sensor_channel_get(bme280, SENSOR_CHAN_HUMIDITY, &val);

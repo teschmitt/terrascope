@@ -6,7 +6,7 @@
 LOG_MODULE_REGISTER(sensor_mock);
 
 int ts_sensor_backend_read(struct ts_msg_telemetry* p_tel) {
-    p_tel->temperature = sys_rand32_get() / 1000000;
+    p_tel->temperature = (int32_t)(sys_rand32_get() % 10001) - 4000;
     p_tel->humidity = sys_rand32_get() / 1000000;
     p_tel->pressure = sys_rand32_get() / 10000;
 

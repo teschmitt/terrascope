@@ -31,7 +31,7 @@ typedef enum {
 /** @brief Telemetry payload (temperature, humidity, pressure). */
 struct ts_msg_telemetry {
     uint32_t timestamp;
-    uint32_t temperature;
+    int32_t temperature;
     uint32_t humidity;
     uint32_t pressure;
 };
