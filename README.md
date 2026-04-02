@@ -164,9 +164,30 @@ terrascope/
 └── west.yml                    Zephyr manifest
 ```
 
+## Lint & Format
+
+The project uses **clang-format** for formatting and **clang-tidy** for static analysis. Both are enforced in CI.
+
+```bash
+# Check formatting (dry run, exits non-zero on violations)
+clang-format --dry-run --Werror src/**/*.c src/**/*.h tests/**/main.c
+
+# Auto-format all source files
+clang-format -i src/**/*.c src/**/*.h tests/**/main.c
+
+# Run clang-tidy (requires a build first for compile_commands.json)
+west build -b qemu_riscv64 -p
+clang-tidy -p build --extra-arg=-Wno-error=unknown-argument src/**/*.c
+```
+
+Configuration files:
+- `.clang-format` -- Google base, 4-space indent, 80-col limit
+- `.clang-tidy` -- bugprone and clang-analyzer checks tuned for Zephyr embedded C
+
 ## Code Style
 
 - **Formatter**: clang-format (Google base, 4-space indent, 80-col limit) -- see `.clang-format`
+- **Linter**: clang-tidy (bugprone + clang-analyzer checks) -- see `.clang-tidy`
 - **Naming**: `ts_` prefix for all application types/channels, `snake_case` functions, `UPPER_SNAKE_CASE` macros
 - **Memory**: Static allocation only, fixed-width types (`uint32_t`, `int16_t`, etc.)
 - **Error handling**: Return 0 on success, negative errno on failure
