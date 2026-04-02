@@ -54,11 +54,11 @@ jobs:
 
       - name: Check formatting
         working-directory: terrascope
-        run: clang-format --dry-run --Werror src/**/*.c src/**/*.h tests/**/main.c
+        run: find src tests -name '*.c' -o -name '*.h' | xargs clang-format --dry-run --Werror
 
       - name: Run clang-tidy
         working-directory: terrascope
-        run: clang-tidy -p build --extra-arg=-Wno-error=unknown-argument --warnings-as-errors='*' src/**/*.c
+        run: find src -name '*.c' | xargs clang-tidy -p build --extra-arg=-Wno-error=unknown-argument --warnings-as-errors='*'
 
   build:
     runs-on: ubuntu-latest

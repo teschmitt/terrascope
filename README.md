@@ -170,14 +170,14 @@ The project uses **clang-format** for formatting and **clang-tidy** for static a
 
 ```bash
 # Check formatting (dry run, exits non-zero on violations)
-clang-format --dry-run --Werror src/**/*.c src/**/*.h tests/**/main.c
+find src tests -name '*.c' -o -name '*.h' | xargs clang-format --dry-run --Werror
 
 # Auto-format all source files
-clang-format -i src/**/*.c src/**/*.h tests/**/main.c
+find src tests -name '*.c' -o -name '*.h' | xargs clang-format -i
 
 # Run clang-tidy (requires a build first for compile_commands.json)
 west build -b qemu_riscv64 -p
-clang-tidy -p build --extra-arg=-Wno-error=unknown-argument src/**/*.c
+find src -name '*.c' | xargs clang-tidy -p build --extra-arg=-Wno-error=unknown-argument
 ```
 
 Configuration files:
