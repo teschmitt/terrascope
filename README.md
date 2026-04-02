@@ -11,7 +11,8 @@ This project creates a scalable, low-power mesh of sensor nodes that collect env
 - 🌡 **Sensor Support** -- BME280 environmental sensor (temperature, humidity, pressure) on RAK4631; mock data on QEMU
 - 🛠 **Modular Architecture** -- Zephyr Zbus message bus with clear separation of sensor, LoRa, routing, and message modules
 - 🔒 **Network Security** -- AES-128-CMAC message authentication (PSA Crypto API), per-deployment network key, key rotation via `key_id`
-- 🧪 **Testable** -- 63 unit tests across CBOR, routing, contention, neighbor table, auth, and config modules; mock LoRa driver with loopback for full pipeline testing in QEMU
+- ⚙️ **Runtime Config** -- NVS-backed persistent configuration; remote config push over LoRa mesh with authenticated set/ack protocol
+- 🧪 **Testable** -- 67 unit tests across CBOR, routing, contention, neighbor table, auth, and config modules; mock LoRa driver with loopback for full pipeline testing in QEMU
 - 🔄 **CI/CD** -- GitHub Actions matrix build for all targets plus unit tests via `west twister`
 
 ## Supported Hardware
@@ -111,6 +112,8 @@ Defined in `src/messages/messages.h` as a tagged union (`ts_msg_lora_outgoing`).
 | -------------------- | ------------------------------------------ | -------------------------- |
 | `TS_MSG_TELEMETRY`   | timestamp, temperature, humidity, pressure | s, centi-°C, centi-%RH, Pa |
 | `TS_MSG_NODE_STATUS` | timestamp, uptime, status                  | s, s, enum                 |
+| `TS_MSG_CONFIG_SET`  | key, value                                 | string, int32              |
+| `TS_MSG_CONFIG_ACK`  | key, value, result                         | string, int32, int32       |
 
 ### Modules
 
@@ -150,7 +153,7 @@ terrascope/
 │   └── main.c                  Entry point, zbus channels, routing init
 ├── tests/
 │   ├── auth/                   Auth sign/verify tests (7 tests)
-│   ├── cbor/                   CBOR serialization tests (9 tests)
+│   ├── cbor/                   CBOR serialization tests (13 tests)
 │   ├── routing/                Routing logic tests (15 tests)
 │   ├── contention/             Contention forwarding tests (11 tests)
 │   ├── routing_table/          Neighbor table tests (13 tests)

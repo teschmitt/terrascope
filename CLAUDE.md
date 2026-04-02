@@ -50,6 +50,8 @@ The firmware uses **Zephyr Zbus** as its central message bus. All inter-module c
 Defined in `src/messages/messages.h` — a tagged union (`ts_msg_lora_outgoing`) with:
 - `TS_MSG_TELEMETRY` — temperature (centi-°C), humidity (centi-%RH), pressure (Pa)
 - `TS_MSG_NODE_STATUS` — uptime, status
+- `TS_MSG_CONFIG_SET` — key (string), value (int32); point-to-point, not flooded
+- `TS_MSG_CONFIG_ACK` — key (string), value (int32), result (int32); reply to config set
 
 ### Key Modules
 
