@@ -63,11 +63,15 @@ Defined in `src/messages/messages.h` — a tagged union (`ts_msg_lora_outgoing`)
 | Config | `src/config/` | Runtime configuration schema, NVS persistence, compile-time defaults |
 | Mock LoRa driver | `src/drivers/lora_mock.c` + `drivers/lora/` | Simulation driver, enabled via `CONFIG_LORA_MOCK=y` |
 
+### Runtime Configuration
+
+All runtime-tunable parameters (routing TTL, contention delays/RSSI thresholds, LoRa radio params, timer intervals, node ID) live in `struct ts_config` (`src/config/config.h`). Modules read values via `ts_config_get()->field` — never by referencing the old `TS_*` constants directly. The config module uses Zephyr Settings with NVS backend for persistence; `#ifdef CONFIG_SETTINGS` guards allow it to compile without Settings (returns static defaults). Boot order: `SYS_INIT(lora_init)` uses static defaults → `main()` calls `ts_config_init()` which loads persisted values from NVS.
+
 ### Board Configuration
 
 Per-board configs live in `boards/` as flat files using Zephyr's normalized board target naming (e.g., `rak4631_nrf52840.overlay`, `heltec_wifi_lora32_v2_esp32_procpu.conf`). Custom DT bindings are in `dts/bindings/`.
 
-- **QEMU**: enables mock LoRa driver via overlay and Kconfig
+- **QEMU**: enables mock LoRa driver and flash simulator (for NVS config persistence) via overlay and Kconfig
 - **RAK4631**: enables I2C, sensor subsystem, and wires BME280 on I2C0 (address 0x76) via overlay
 
 ## Code Style
@@ -75,7 +79,7 @@ Per-board configs live in `boards/` as flat files using Zephyr's normalized boar
 - C code formatted with clang-format (Google base style, 4-space indent, 80-col limit) — see `.clang-format`
 - All types/structs use `ts_` prefix
 - Zephyr logging: each module registers its own `LOG_MODULE_REGISTER(name)`
-- LoRa device configured at 865.1 MHz, SF10, BW 125 kHz, CR 4/5
+- LoRa radio defaults: 865.1 MHz, SF10, BW 125 kHz, CR 4/5 (runtime-configurable via `ts_config_get()`)
 
 ## Coding Guidelines
 
