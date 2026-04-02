@@ -1,4 +1,6 @@
+#include <string.h>
 #include <zephyr/ztest.h>
+
 #include "lora/cbor.h"
 #include "messages/messages.h"
 #include "routing/routing.h"
@@ -162,6 +164,115 @@ ZTEST(cbor, test_deserialize_empty_buffer)
     int ret = cbor_deserialize(NULL, 0, &decoded);
 
     zassert_not_equal(ret, 0, "empty buffer should fail");
+}
+
+/* Config message roundtrips */
+
+ZTEST(cbor, test_roundtrip_config_set)
+{
+    struct ts_msg_lora_outgoing original = {
+        .route = {.src = 0x0001, .dst = 0x0002, .msg_id = 10, .ttl = 5,
+                  .key_id = 0},
+        .type = TS_MSG_CONFIG_SET,
+    };
+    strncpy(original.data.config_set.key, "ts/routing_ttl",
+            TS_MSG_CONFIG_KEY_MAX - 1);
+    original.data.config_set.value = 3;
+
+    uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
+    size_t size = 0;
+
+    int ret = cbor_serialize(&original, buf, sizeof(buf), &size);
+    zassert_ok(ret, "serialize config_set should succeed");
+
+    struct ts_msg_lora_outgoing decoded = {0};
+    ret = cbor_deserialize(buf, size, &decoded);
+
+    zassert_ok(ret, "deserialize config_set should succeed");
+    zassert_equal(decoded.type, TS_MSG_CONFIG_SET);
+    zassert_equal(decoded.route.src, 0x0001);
+    zassert_equal(decoded.route.dst, 0x0002);
+    zassert_mem_equal(decoded.data.config_set.key, "ts/routing_ttl", 14);
+    zassert_equal(decoded.data.config_set.value, 3);
+}
+
+ZTEST(cbor, test_roundtrip_config_set_negative_value)
+{
+    struct ts_msg_lora_outgoing original = {
+        .route = TEST_ROUTE,
+        .type = TS_MSG_CONFIG_SET,
+    };
+    strncpy(original.data.config_set.key, "ts/lora_tx_power",
+            TS_MSG_CONFIG_KEY_MAX - 1);
+    original.data.config_set.value = -2;
+
+    uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
+    size_t size = 0;
+
+    int ret = cbor_serialize(&original, buf, sizeof(buf), &size);
+    zassert_ok(ret);
+
+    struct ts_msg_lora_outgoing decoded = {0};
+    ret = cbor_deserialize(buf, size, &decoded);
+
+    zassert_ok(ret);
+    zassert_equal(decoded.data.config_set.value, -2,
+                  "Negative value should survive roundtrip");
+}
+
+ZTEST(cbor, test_roundtrip_config_ack)
+{
+    struct ts_msg_lora_outgoing original = {
+        .route = {.src = 0x0002, .dst = 0x0001, .msg_id = 11, .ttl = 5,
+                  .key_id = 0},
+        .type = TS_MSG_CONFIG_ACK,
+    };
+    strncpy(original.data.config_ack.key, "ts/routing_ttl",
+            TS_MSG_CONFIG_KEY_MAX - 1);
+    original.data.config_ack.value = 3;
+    original.data.config_ack.result = 0;
+
+    uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
+    size_t size = 0;
+
+    int ret = cbor_serialize(&original, buf, sizeof(buf), &size);
+    zassert_ok(ret, "serialize config_ack should succeed");
+
+    struct ts_msg_lora_outgoing decoded = {0};
+    ret = cbor_deserialize(buf, size, &decoded);
+
+    zassert_ok(ret, "deserialize config_ack should succeed");
+    zassert_equal(decoded.type, TS_MSG_CONFIG_ACK);
+    zassert_equal(decoded.route.src, 0x0002);
+    zassert_equal(decoded.route.dst, 0x0001);
+    zassert_mem_equal(decoded.data.config_ack.key, "ts/routing_ttl", 14);
+    zassert_equal(decoded.data.config_ack.value, 3);
+    zassert_equal(decoded.data.config_ack.result, 0);
+}
+
+ZTEST(cbor, test_roundtrip_config_ack_with_error)
+{
+    struct ts_msg_lora_outgoing original = {
+        .route = TEST_ROUTE,
+        .type = TS_MSG_CONFIG_ACK,
+    };
+    strncpy(original.data.config_ack.key, "ts/nonexistent",
+            TS_MSG_CONFIG_KEY_MAX - 1);
+    original.data.config_ack.value = 42;
+    original.data.config_ack.result = -ENOENT;
+
+    uint8_t buf[ZBOR_ENCODE_BUFFER_SIZE];
+    size_t size = 0;
+
+    int ret = cbor_serialize(&original, buf, sizeof(buf), &size);
+    zassert_ok(ret);
+
+    struct ts_msg_lora_outgoing decoded = {0};
+    ret = cbor_deserialize(buf, size, &decoded);
+
+    zassert_ok(ret);
+    zassert_equal(decoded.data.config_ack.result, -ENOENT,
+                  "Negative result should survive roundtrip");
 }
 
 ZTEST_SUITE(cbor, NULL, NULL, NULL, NULL, NULL);
