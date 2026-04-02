@@ -25,15 +25,27 @@ int ts_sensor_backend_read(struct ts_msg_telemetry* p_tel) {
     }
 
     // Temperature in centi-degrees C (e.g. 2512 = 25.12 °C)
-    sensor_channel_get(bme280, SENSOR_CHAN_AMBIENT_TEMP, &val);
+    ret = sensor_channel_get(bme280, SENSOR_CHAN_AMBIENT_TEMP, &val);
+    if (ret != 0) {
+        LOG_ERR("BME280 temperature read failed: %d", ret);
+        return ret;
+    }
     p_tel->temperature = (uint32_t)(val.val1 * 100 + val.val2 / 10000);
 
     // Humidity in centi-percent RH (e.g. 6543 = 65.43 %RH)
-    sensor_channel_get(bme280, SENSOR_CHAN_HUMIDITY, &val);
+    ret = sensor_channel_get(bme280, SENSOR_CHAN_HUMIDITY, &val);
+    if (ret != 0) {
+        LOG_ERR("BME280 humidity read failed: %d", ret);
+        return ret;
+    }
     p_tel->humidity = (uint32_t)(val.val1 * 100 + val.val2 / 10000);
 
     // Pressure in Pa (e.g. 101325 = 1013.25 hPa)
-    sensor_channel_get(bme280, SENSOR_CHAN_PRESS, &val);
+    ret = sensor_channel_get(bme280, SENSOR_CHAN_PRESS, &val);
+    if (ret != 0) {
+        LOG_ERR("BME280 pressure read failed: %d", ret);
+        return ret;
+    }
     p_tel->pressure = (uint32_t)(val.val1 * 1000 + val.val2 / 1000);
 
     return 0;
