@@ -74,6 +74,11 @@ int ts_routing_table_update(uint16_t node_id, int16_t rssi, int8_t snr,
     entry = find_free_slot();
     if (entry == NULL) {
         entry = find_oldest();
+        if (entry == NULL) {
+            LOG_ERR("Routing table corrupted: no free or occupied slot");
+            k_mutex_unlock(&table_mutex);
+            return -ENOSPC;
+        }
         LOG_DBG("Evicting neighbor 0x%04x for 0x%04x", entry->node_id, node_id);
     }
 
